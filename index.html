@@ -9,62 +9,67 @@
 <script>
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║            PARENT CONFIGURATION — EDIT THIS SECTION ONLY               ║
+   ╠══════════════════════════════════════════════════════════════════════════╣
    ║                                                                          ║
    ║  HOW TO UPDATE THE BOARD:                                                ║
-   ║  1. Open this file in Notepad, TextEdit, or VS Code                      ║
-   ║  2. Edit only the values between quotes / numbers below                  ║
-   ║  3. Save the file                                                         ║
-   ║  4. Re-upload to your hosting (GitHub Pages / Netlify) or open locally   ║
+   ║  1. Open this file in GitHub (pencil icon) or Notepad / VS Code         ║
+   ║  2. Edit only the values in the CONFIG block below                       ║
+   ║  3. Save / Commit — the board updates within a minute                   ║
    ║                                                                          ║
-   ║  ABOUT THE SCORE SYSTEM:                                                 ║
-   ║  • startingScore sets where we begin (0–100)                             ║
-   ║  • Each event in eventLog adds or subtracts points automatically         ║
-   ║  • Positive points = trust building events                               ║
-   ║  • Negative points = trust setback events                                ║
-   ║  • The score drives the overall position AND the freedom levels          ║
-   ║  • You never need to manually set the position — it calculates itself    ║
-   ║  • The numeric score is shown subtly; the STATUS word is the main signal ║
+   ║  THE TWO-TRACK SYSTEM:                                                   ║
    ║                                                                          ║
-   ║  ABOUT OVERRIDES:                                                        ║
-   ║  • Each freedom can have overrideStatus: null (auto) or a manual status  ║
-   ║  • Use overrides sparingly — only when the score doesn't tell the story  ║
-   ║  • If you set an override, a small "Parent decision applied" note shows  ║
+   ║  TRACK 1 — TRUST SCORE (0–100)                                          ║
+   ║  • startingScore sets where we begin                                     ║
+   ║  • Each eventLog entry adds or subtracts points                          ║
+   ║  • Score drives overall position AND auto-calculates freedom levels      ║
+   ║  • Positive events move it up, negative events move it down              ║
    ║                                                                          ║
-   ║  DO NOT change historical event entries once agreed — the log should     ║
-   ║  be a consistent, fair record. Add new entries at the TOP of eventLog.   ║
+   ║  TRACK 2 — INCIDENT SUSPENSIONS (independent of score)                  ║
+   ║  • Serious events can impose a timed suspension on a specific freedom    ║
+   ║  • The suspension runs for a fixed number of days                        ║
+   ║  • Even if the score recovers, the suspension must expire first          ║
+   ║  • This prevents easy wins from immediately cancelling a serious breach  ║
+   ║  • Add a suspension by including a "suspend" block in any event entry    ║
+   ║  • To end a suspension early (exceptional behaviour), set                ║
+   ║    earlyLiftDate to the date you want it to end                          ║
+   ║                                                                          ║
+   ║  SCORE FLOOR AFTER AN INCIDENT:                                          ║
+   ║  • A suspension can set a scoreFloor for that freedom's auto-calculation ║
+   ║  • This means even if the overall score rises, THAT freedom cannot       ║
+   ║    calculate above the floor until the suspension expires                ║
+   ║  • Prevents gaming — easy wins don't unlock a suspended freedom early    ║
+   ║                                                                          ║
+   ║  DEFAULT SUSPENSION DURATIONS (can be overridden per event):            ║
+   ║  • Honesty breach (vaping, lying):  14 days                             ║
+   ║  • Reliability breach (late home):   5 days                             ║
+   ║  • School incident:                  7 days                             ║
+   ║  • Boundary breach:                 10 days                             ║
+   ║  • Serious incident:                21 days                             ║
+   ║                                                                          ║
+   ║  DO NOT change historical event entries once agreed.                    ║
+   ║  Add new entries at the TOP of eventLog.                                 ║
    ╚══════════════════════════════════════════════════════════════════════════╝ */
 
 const CONFIG = {
 
-  /* ── IDENTITY ──────────────────────────────────────────────────────────── */
-  name:         "Vaughan",          // First name — shown on the board
-  lastUpdated:  "4 June 2026",    // Update this date whenever you make changes
-  boardActiveFrom: "4 June 2026", // Start date — board tracks from here forward
+  /* ── IDENTITY ─────────────────────────────────────────────────────────── */
+  name:            "Vaughan",
+  lastUpdated:     "4 June 2026",
+  boardActiveFrom: "4 June 2026",
 
-  /* ── STARTING POSITION ──────────────────────────────────────────────────
-     Set the starting score (0–100) to reflect where we are at launch.
-     Past events can inform this number, but only events in eventLog below
-     will appear on the visible trust log. The starting score represents
-     context without relitigating history on the board itself.
+  /* ── STARTING SCORE ──────────────────────────────────────────────────────
+     0–100. Past history can inform this number but won't appear in the log.
+     42 = Rebuilding Trust. Adjust to reflect where you honestly are today.
   ──────────────────────────────────────────────────────────────────────── */
   startingScore: 42,
 
-  /* ── STARTING POSITION EXPLANATION ─────────────────────────────────────
-     This short note is shown once on the board to explain the starting point.
-     Keep it forward-looking. One or two sentences maximum.
-  ──────────────────────────────────────────────────────────────────────── */
+  /* ── STARTING NOTE ───────────────────────────────────────────────────── */
   startingNote: "We are starting at Rebuilding Trust. This reflects recent history, but the board moves forward from today. The past has been noted — it does not need to be replayed.",
 
-  /* ── THIS WEEK'S FOCUS ──────────────────────────────────────────────────
-     One clear objective. Update weekly. Keep it specific and positive.
-  ──────────────────────────────────────────────────────────────────────── */
+  /* ── THIS WEEK'S FOCUS ───────────────────────────────────────────────── */
   currentFocus: "Honest communication this week — if something happens, tell us first. No surprises.",
 
-  /* ── NEXT UNLOCK BEHAVIOURS ─────────────────────────────────────────────
-     The "Next Unlock" section auto-detects which freedom to target.
-     List the behaviours needed to move trust in the right direction.
-     These apply generally — they describe what builds trust, not a checklist.
-  ──────────────────────────────────────────────────────────────────────── */
+  /* ── NEXT UNLOCK BEHAVIOURS ──────────────────────────────────────────── */
   nextUnlockBehaviours: [
     "Honest communication — tell us before we find out",
     "No hidden vaping or substance use",
@@ -74,45 +79,68 @@ const CONFIG = {
   ],
 
   /* ── FREEDOM OVERRIDES ───────────────────────────────────────────────────
-     By default all freedoms calculate automatically from the score.
-     To manually override one, change overrideStatus from null to a status:
-       "GRANTED"    = currently fully allowed
-       "LIMITED"    = allowed with tight restrictions
-       "REBUILDING" = not normal yet, actively being earned back
-       "LOCKED"     = not currently available
-       "SUSPENDED"  = removed due to a specific serious incident
-     Leave as null to use automatic calculation.
-     overrideNote is shown when an override is active — keep it factual.
+     Leave overrideStatus as null to use automatic score-based calculation.
+     Only set manually if the score doesn't reflect the full picture.
+     Note: incident suspensions (below) are handled automatically via eventLog.
   ──────────────────────────────────────────────────────────────────────── */
   freedomOverrides: {
-    "Local Daytime": { overrideStatus: null,         overrideNote: "" },
-    "Evening":       { overrideStatus: "REBUILDING", overrideNote: "Back by 9pm. Location shared when out." },
-    "Wider Travel":  { overrideStatus: null,         overrideNote: "" },
-    "Parties":       { overrideStatus: null,         overrideNote: "" },
-    "Sleepovers":    { overrideStatus: null,         overrideNote: "" }
+    "Local Daytime": { overrideStatus: null,  overrideNote: "" },
+    "Evening":       { overrideStatus: null,  overrideNote: "" },
+    "Wider Travel":  { overrideStatus: null,  overrideNote: "" },
+    "Parties":       { overrideStatus: null,  overrideNote: "" },
+    "Sleepovers":    { overrideStatus: null,  overrideNote: "" }
   },
 
   /* ── EVENT LOG ───────────────────────────────────────────────────────────
-     Add new entries at the TOP (newest first).
-     Only events with visible: true appear on the board.
-     Set visible: false to include an event in the score without showing it.
+     Add new entries at the TOP. Newest first.
 
-     Fields:
-       date     — "YYYY-MM-DD" format (sorts automatically)
-       event    — Brief factual description. No emotional language.
-       category — e.g. "Honesty" / "Reliability" / "School" / "Communication"
-       points   — Positive = trust up. Negative = trust down. Keep in range ±10.
-       notes    — Optional. Parent-only context (not shown on board).
-       visible  — true = shown in trust log. false = score only, not visible.
+     BASIC EVENT (no suspension):
+     {
+       date:     "2026-06-10",
+       event:    "Home on time, no reminder needed",
+       category: "Reliability",
+       points:   3,
+       notes:    "",
+       visible:  true
+     },
 
-     GOOD event descriptions:
-       "Came home on time, no reminder needed"
-       "Hidden vape found"
-       "Told us about school issue before we were called"
-       "45 minutes late, no contact"
+     EVENT WITH SUSPENSION:
+     Add a "suspend" block to lock a specific freedom for a number of days.
+     The suspension starts from the event date.
+     scoreFloor prevents that freedom recovering via score while suspended.
+     earlyLiftDate: null means it runs full duration.
+     To end early (exceptional behaviour): set earlyLiftDate: "2026-06-15"
 
-     AVOID:
-       "Lied again", "Let us down", "Massive breach of trust"
+     {
+       date:     "2026-05-28",
+       event:    "Hidden vape found",
+       category: "Honesty",
+       points:   -8,
+       notes:    "Concealed for several days",
+       visible:  true,
+       suspend: {
+         freedom:      "Evening",
+         days:         14,
+         reason:       "Suspended following vaping incident",
+         scoreFloor:   40,
+         earlyLiftDate: null
+       }
+     },
+
+     SUSPENSION CATEGORIES & DEFAULT DAYS (use as guidance):
+       Honesty breach (vaping/lying):   14 days
+       Reliability (late/no contact):    5 days
+       School incident:                  7 days
+       Boundary breach:                 10 days
+       Serious incident:                21 days
+
+     POINTS GUIDANCE:
+       Minor positive (on time, helpful):         +2 to +3
+       Solid positive (honest conversation):      +4 to +5
+       Significant positive (unprompted honesty): +6 to +8
+       Minor setback (slightly late):             -2 to -3
+       Clear setback (late, no contact):          -4 to -6
+       Serious breach (vaping, lying):            -7 to -10
   ──────────────────────────────────────────────────────────────────────── */
   eventLog: [
     {
@@ -137,7 +165,14 @@ const CONFIG = {
       category: "Honesty",
       points:   -8,
       notes:    "Had been concealed for several days",
-      visible:  true
+      visible:  true,
+      suspend: {
+        freedom:       "Evening",
+        days:          14,
+        reason:        "Suspended following vaping incident",
+        scoreFloor:    40,
+        earlyLiftDate: null
+      }
     },
     {
       date:     "2026-05-25",
@@ -145,7 +180,14 @@ const CONFIG = {
       category: "Reliability",
       points:   -5,
       notes:    "",
-      visible:  true
+      visible:  true,
+      suspend: {
+        freedom:       "Evening",
+        days:          5,
+        reason:        "Curfew breach — no contact",
+        scoreFloor:    null,
+        earlyLiftDate: null
+      }
     },
     {
       date:     "2026-05-19",
@@ -173,21 +215,17 @@ const CONFIG = {
 </script>
 
 <style>
-  /* ── DESIGN TOKENS ── */
   :root {
     --bg:           #1a1a1c;
     --surface:      #232326;
     --surface2:     #2a2a2e;
     --border:       #38383c;
-    --border-light: #444448;
     --gold:         #c8a84a;
     --gold-dim:     #6e5c28;
     --text:         #e6e2d6;
     --text-mid:     #aaa9a0;
     --text-dim:     #666;
     --mono:         'Share Tech Mono', monospace;
-
-    /* Status colours */
     --granted:      #3db87a;
     --granted-bg:   #152a1e;
     --granted-bdr:  #1e4a30;
@@ -197,247 +235,164 @@ const CONFIG = {
     --rebuilding:   #d4872a;
     --rebuilding-bg:#2a1a08;
     --rebuilding-bdr:#4a3010;
-    --locked:       #888;
+    --locked:       #777;
     --locked-bg:    #1e1e20;
     --locked-bdr:   #333;
     --suspended:    #c0392b;
     --suspended-bg: #280a08;
     --suspended-bdr:#5a1010;
-
-    /* Score band colours */
-    --score-0:  #c0392b;
-    --score-21: #d4622a;
-    --score-41: #d4872a;
-    --score-61: #c8a84a;
-    --score-81: #3db87a;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html { scroll-behavior: smooth; }
-
   body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Barlow', sans-serif;
-    font-size: 15px;
-    line-height: 1.5;
-    min-height: 100vh;
+    background: var(--bg); color: var(--text);
+    font-family: 'Barlow', sans-serif; font-size: 15px;
+    line-height: 1.5; min-height: 100vh;
   }
 
   /* ── TOPBAR ── */
   .topbar {
-    background: #111;
-    border-bottom: 3px solid var(--gold);
-    padding: 0 20px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    height: 54px;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    gap: 12px;
+    background: #111; border-bottom: 3px solid var(--gold);
+    padding: 0 20px; display: flex; align-items: center;
+    justify-content: space-between; height: 54px;
+    position: sticky; top: 0; z-index: 100; gap: 12px;
   }
-  .topbar-left {
-    display: flex; align-items: center; gap: 14px;
-  }
+  .topbar-left { display: flex; align-items: center; gap: 14px; }
   .topbar-title {
-    font-family: 'Rajdhani', sans-serif;
-    font-size: 17px; font-weight: 700;
-    letter-spacing: 4px; color: var(--gold);
-    text-transform: uppercase; white-space: nowrap;
+    font-family: 'Rajdhani', sans-serif; font-size: 17px; font-weight: 700;
+    letter-spacing: 4px; color: var(--gold); text-transform: uppercase; white-space: nowrap;
   }
   .topbar-name {
-    font-family: 'Rajdhani', sans-serif;
-    font-size: 13px; font-weight: 600;
-    color: var(--text-dim); letter-spacing: 2px;
-    text-transform: uppercase; white-space: nowrap;
+    font-family: 'Rajdhani', sans-serif; font-size: 13px; font-weight: 600;
+    color: var(--text-dim); letter-spacing: 2px; text-transform: uppercase; white-space: nowrap;
   }
-  .topbar-right {
-    display: flex; align-items: center; gap: 14px;
-  }
-  .topbar-score {
-    font-family: var(--mono);
-    font-size: 11px; color: var(--text-dim);
-    letter-spacing: 1px; white-space: nowrap;
-  }
+  .topbar-right { display: flex; align-items: center; gap: 14px; }
+  .topbar-score { font-family: var(--mono); font-size: 11px; color: var(--text-dim); letter-spacing: 1px; }
   .topbar-score span { font-weight: 700; color: var(--gold); }
-  .topbar-updated {
-    font-family: var(--mono);
-    font-size: 10px; color: var(--text-dim);
-    letter-spacing: 0.5px; white-space: nowrap;
-  }
+  .topbar-updated { font-family: var(--mono); font-size: 10px; color: var(--text-dim); letter-spacing: 0.5px; white-space: nowrap; }
   .print-btn {
-    background: none; border: 1px solid var(--border);
-    color: var(--text-dim); padding: 5px 12px;
-    border-radius: 3px; cursor: pointer;
-    font-family: 'Rajdhani', sans-serif;
-    font-size: 11px; font-weight: 600;
-    letter-spacing: 2px; text-transform: uppercase;
-    transition: all 0.15s;
+    background: none; border: 1px solid var(--border); color: var(--text-dim);
+    padding: 5px 12px; border-radius: 3px; cursor: pointer;
+    font-family: 'Rajdhani', sans-serif; font-size: 11px; font-weight: 600;
+    letter-spacing: 2px; text-transform: uppercase; transition: all 0.15s;
   }
   .print-btn:hover { border-color: var(--gold); color: var(--gold); }
 
   /* ── LAYOUT ── */
-  .page {
-    max-width: 900px; margin: 0 auto;
-    padding: 20px 16px 60px;
-  }
-
+  .page { max-width: 900px; margin: 0 auto; padding: 20px 16px 60px; }
   .section-label {
-    font-family: 'Rajdhani', sans-serif;
-    font-size: 10px; font-weight: 700;
-    letter-spacing: 4px; text-transform: uppercase;
-    color: var(--gold-dim);
-    border-left: 3px solid var(--gold-dim);
-    padding-left: 10px; margin-bottom: 12px;
+    font-family: 'Rajdhani', sans-serif; font-size: 10px; font-weight: 700;
+    letter-spacing: 4px; text-transform: uppercase; color: var(--gold-dim);
+    border-left: 3px solid var(--gold-dim); padding-left: 10px; margin-bottom: 12px;
   }
-
-  .card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 3px; padding: 18px;
-  }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 3px; padding: 18px; }
   .gap { margin-bottom: 18px; }
 
   /* ── POSITION BANNER ── */
   .position-banner {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 3px;
-    padding: 22px 20px 18px;
-    margin-bottom: 18px;
-    display: grid;
-    grid-template-columns: auto 1fr auto;
-    gap: 18px;
-    align-items: center;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 3px;
+    padding: 22px 20px 18px; margin-bottom: 18px;
+    display: grid; grid-template-columns: auto 1fr auto; gap: 18px; align-items: center;
     border-top: 4px solid var(--gold);
   }
   .position-icon {
-    width: 54px; height: 54px; flex-shrink: 0;
-    border: 2px solid currentColor; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
+    width: 54px; height: 54px; flex-shrink: 0; border: 2px solid currentColor;
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
     font-size: 22px; background: #111;
   }
   .position-label {
-    font-family: 'Rajdhani', sans-serif;
-    font-size: 10px; font-weight: 700; letter-spacing: 4px;
-    text-transform: uppercase; color: var(--gold-dim); margin-bottom: 5px;
+    font-family: 'Rajdhani', sans-serif; font-size: 10px; font-weight: 700;
+    letter-spacing: 4px; text-transform: uppercase; color: var(--gold-dim); margin-bottom: 5px;
   }
   .position-status {
-    font-family: 'Rajdhani', sans-serif;
-    font-size: 28px; font-weight: 700;
+    font-family: 'Rajdhani', sans-serif; font-size: 28px; font-weight: 700;
     letter-spacing: 3px; line-height: 1; margin-bottom: 6px;
   }
-  .position-message {
-    font-size: 13px; color: var(--text-mid);
-    font-style: italic; line-height: 1.6;
-    max-width: 520px;
-  }
-  .position-score-block {
-    text-align: right;
-  }
+  .position-message { font-size: 13px; color: var(--text-mid); font-style: italic; line-height: 1.6; }
+  .score-track { height: 4px; background: var(--surface2); border-radius: 2px; margin-top: 8px; overflow: hidden; max-width: 340px; }
+  .score-fill { height: 100%; border-radius: 2px; transition: width 0.6s ease; }
   .score-ring {
-    width: 64px; height: 64px;
-    border-radius: 50%;
-    border: 3px solid var(--border);
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    background: #111;
-    margin-left: auto;
+    width: 64px; height: 64px; border-radius: 50%; border: 3px solid var(--border);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    background: #111; margin-left: auto;
   }
-  .score-num {
-    font-family: var(--mono); font-size: 20px; font-weight: 700; line-height: 1;
-  }
-  .score-label {
-    font-family: var(--mono); font-size: 8px;
-    color: var(--text-dim); letter-spacing: 1px; margin-top: 2px;
-  }
+  .score-num { font-family: var(--mono); font-size: 20px; font-weight: 700; line-height: 1; }
+  .score-label { font-family: var(--mono); font-size: 8px; color: var(--text-dim); letter-spacing: 1px; margin-top: 2px; }
 
-  /* Starting note */
+  /* ── STARTING NOTE ── */
   .starting-note {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-left: 3px solid var(--gold-dim);
-    border-radius: 2px;
-    padding: 12px 14px;
-    margin-bottom: 18px;
+    background: var(--surface2); border: 1px solid var(--border); border-left: 3px solid var(--gold-dim);
+    border-radius: 2px; padding: 12px 14px; margin-bottom: 18px;
     font-size: 12px; color: var(--text-mid); font-style: italic; line-height: 1.6;
   }
   .starting-note strong {
-    font-family: 'Rajdhani', sans-serif; font-size: 9px;
-    letter-spacing: 3px; text-transform: uppercase;
-    color: var(--gold-dim); font-style: normal; display: block; margin-bottom: 4px;
+    font-family: 'Rajdhani', sans-serif; font-size: 9px; letter-spacing: 3px;
+    text-transform: uppercase; color: var(--gold-dim); font-style: normal; display: block; margin-bottom: 4px;
   }
 
   /* ── FREEDOM GRID ── */
-  .freedom-grid {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 10px; margin-bottom: 18px;
-  }
-  .freedom-card {
-    border-radius: 3px; padding: 14px 10px 12px; text-align: center;
-    border: 1px solid var(--border);
-    background: var(--surface);
-  }
-  /* Status colour classes */
-  .fc-GRANTED    { background: var(--granted-bg);   border-color: var(--granted-bdr);   border-top: 4px solid var(--granted); }
-  .fc-LIMITED    { background: var(--limited-bg);   border-color: var(--limited-bdr);   border-top: 4px solid var(--limited); }
-  .fc-REBUILDING { background: var(--rebuilding-bg);border-color: var(--rebuilding-bdr);border-top: 4px solid var(--rebuilding); }
-  .fc-LOCKED     { background: var(--locked-bg);    border-color: var(--locked-bdr);    border-top: 4px solid var(--locked); }
-  .fc-SUSPENDED  { background: var(--suspended-bg); border-color: var(--suspended-bdr); border-top: 4px solid var(--suspended); }
-
+  .freedom-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 18px; }
+  .freedom-card { border-radius: 3px; padding: 14px 10px 12px; text-align: center; border: 1px solid var(--border); background: var(--surface); }
+  .fc-GRANTED    { background: var(--granted-bg);    border-color: var(--granted-bdr);    border-top: 4px solid var(--granted); }
+  .fc-LIMITED    { background: var(--limited-bg);    border-color: var(--limited-bdr);    border-top: 4px solid var(--limited); }
+  .fc-REBUILDING { background: var(--rebuilding-bg); border-color: var(--rebuilding-bdr); border-top: 4px solid var(--rebuilding); }
+  .fc-LOCKED     { background: var(--locked-bg);     border-color: var(--locked-bdr);     border-top: 4px solid var(--locked); }
+  .fc-SUSPENDED  { background: var(--suspended-bg);  border-color: var(--suspended-bdr);  border-top: 4px solid var(--suspended); }
   .freedom-card-name {
     font-family: 'Rajdhani', sans-serif; font-size: 13px; font-weight: 700;
-    color: var(--text); margin-bottom: 8px; line-height: 1.2; letter-spacing: 0.3px;
+    color: var(--text); margin-bottom: 8px; line-height: 1.2;
   }
   .freedom-badge {
-    display: inline-block; font-family: var(--mono); font-size: 9px;
-    font-weight: 700; letter-spacing: 1.5px; padding: 3px 7px;
-    border-radius: 2px; margin-bottom: 8px;
+    display: inline-block; font-family: var(--mono); font-size: 9px; font-weight: 700;
+    letter-spacing: 1.5px; padding: 3px 7px; border-radius: 2px; margin-bottom: 6px;
   }
   .fc-GRANTED    .freedom-badge { color: var(--granted);   border: 1px solid var(--granted);   background: rgba(61,184,122,0.1); }
   .fc-LIMITED    .freedom-badge { color: var(--limited);   border: 1px solid var(--limited);   background: rgba(91,155,213,0.1); }
   .fc-REBUILDING .freedom-badge { color: var(--rebuilding);border: 1px solid var(--rebuilding);background: rgba(212,135,42,0.1); }
   .fc-LOCKED     .freedom-badge { color: var(--locked);    border: 1px solid var(--locked);    background: rgba(100,100,100,0.1); }
   .fc-SUSPENDED  .freedom-badge { color: var(--suspended); border: 1px solid var(--suspended); background: rgba(192,57,43,0.1); }
+  .freedom-note { font-size: 10px; color: var(--text-dim); line-height: 1.4; margin-bottom: 4px; }
+  .freedom-override-tag { font-family: var(--mono); font-size: 9px; color: var(--gold-dim); letter-spacing: 0.5px; display: block; margin-top: 4px; }
 
-  .freedom-note {
-    font-size: 10px; color: var(--text-dim); line-height: 1.4; margin-bottom: 4px;
+  /* ── SUSPENSION COUNTDOWN ── */
+  .suspension-countdown {
+    margin-top: 8px; padding-top: 8px;
+    border-top: 1px solid var(--suspended-bdr);
   }
-  .freedom-override-tag {
-    font-family: var(--mono); font-size: 9px; color: var(--gold-dim);
-    letter-spacing: 0.5px; display: block; margin-top: 4px;
+  .countdown-days {
+    font-family: var(--mono); font-size: 18px; font-weight: 700;
+    color: var(--suspended); line-height: 1;
+  }
+  .countdown-label { font-size: 9px; color: #884; letter-spacing: 1px; margin-top: 2px; }
+  .countdown-lifts { font-size: 9px; color: #666; margin-top: 3px; letter-spacing: 0.5px; }
+  .countdown-reason { font-size: 9px; color: #884; margin-top: 4px; line-height: 1.4; font-style: italic; }
+
+  /* progress bar inside suspended card */
+  .suspension-bar-track { height: 3px; background: #3a1010; border-radius: 2px; margin-top: 6px; overflow: hidden; }
+  .suspension-bar-fill  { height: 100%; background: var(--suspended); border-radius: 2px; transition: width 0.6s; }
+
+  /* early lift badge */
+  .early-lift-badge {
+    display: inline-block; margin-top: 5px; padding: 2px 7px;
+    background: rgba(61,184,122,0.1); border: 1px solid var(--granted);
+    border-radius: 2px; font-family: var(--mono); font-size: 8px;
+    color: var(--granted); letter-spacing: 1px;
   }
 
   /* ── NEXT UNLOCK ── */
   .unlock-card {
-    background: var(--granted-bg);
-    border: 1px solid var(--granted-bdr);
-    border-left: 4px solid var(--granted);
-    border-radius: 3px; padding: 18px; margin-bottom: 18px;
+    background: var(--granted-bg); border: 1px solid var(--granted-bdr);
+    border-left: 4px solid var(--granted); border-radius: 3px; padding: 18px; margin-bottom: 18px;
   }
-  .unlock-header {
-    display: flex; align-items: center; gap: 12px; margin-bottom: 4px;
-    flex-wrap: wrap;
-  }
-  .unlock-arrow { font-size: 18px; color: var(--granted); }
-  .unlock-target {
-    font-family: 'Rajdhani', sans-serif; font-size: 20px; font-weight: 700;
-    letter-spacing: 2px; color: var(--granted);
-  }
-  .unlock-meta {
-    display: flex; gap: 14px; flex-wrap: wrap;
-    margin-bottom: 14px; margin-top: 4px;
-  }
-  .unlock-chip {
-    font-family: var(--mono); font-size: 10px; padding: 3px 8px;
-    border-radius: 2px; letter-spacing: 1px;
-  }
-  .chip-current { background: var(--rebuilding-bg); color: var(--rebuilding); border: 1px solid var(--rebuilding-bdr); }
-  .chip-needed  { background: var(--granted-bg);    color: var(--granted);    border: 1px solid var(--granted-bdr); }
-
+  .unlock-header { display: flex; align-items: center; gap: 12px; margin-bottom: 4px; flex-wrap: wrap; }
+  .unlock-arrow  { font-size: 18px; color: var(--granted); }
+  .unlock-target { font-family: 'Rajdhani', sans-serif; font-size: 20px; font-weight: 700; letter-spacing: 2px; color: var(--granted); }
+  .unlock-meta   { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 14px; margin-top: 4px; }
+  .unlock-chip   { font-family: var(--mono); font-size: 10px; padding: 3px 8px; border-radius: 2px; letter-spacing: 1px; }
+  .chip-current  { background: var(--rebuilding-bg); color: var(--rebuilding); border: 1px solid var(--rebuilding-bdr); }
+  .chip-needed   { background: var(--granted-bg);    color: var(--granted);    border: 1px solid var(--granted-bdr); }
+  .chip-suspended{ background: var(--suspended-bg);  color: var(--suspended);  border: 1px solid var(--suspended-bdr); }
   .unlock-behaviours { list-style: none; }
   .unlock-behaviour {
     display: flex; align-items: flex-start; gap: 10px;
@@ -445,56 +400,54 @@ const CONFIG = {
     font-size: 13px; color: #bbb;
   }
   .unlock-behaviour:last-child { border-bottom: none; }
-  .ub-marker {
-    width: 6px; height: 6px; border-radius: 50%;
-    background: var(--granted); flex-shrink: 0; margin-top: 5px;
+  .ub-marker { width: 6px; height: 6px; border-radius: 50%; background: var(--granted); flex-shrink: 0; margin-top: 5px; }
+
+  /* ── ACTIVE SUSPENSIONS PANEL ── */
+  .suspensions-panel {
+    background: var(--suspended-bg); border: 1px solid var(--suspended-bdr);
+    border-left: 4px solid var(--suspended); border-radius: 3px;
+    padding: 16px; margin-bottom: 18px;
   }
+  .suspension-row {
+    display: flex; align-items: flex-start; gap: 14px;
+    padding: 10px 0; border-bottom: 1px solid rgba(192,57,43,0.15);
+  }
+  .suspension-row:last-child { border-bottom: none; padding-bottom: 0; }
+  .susp-freedom {
+    font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 13px;
+    color: var(--suspended); white-space: nowrap; min-width: 100px;
+  }
+  .susp-detail { flex: 1; }
+  .susp-reason { font-size: 12px; color: #c88; margin-bottom: 3px; }
+  .susp-meta   { font-family: var(--mono); font-size: 10px; color: #884; letter-spacing: 0.5px; }
+  .susp-days   { font-family: var(--mono); font-size: 18px; font-weight: 700; color: var(--suspended); white-space: nowrap; text-align: right; }
+  .susp-days-label { font-family: var(--mono); font-size: 9px; color: #884; text-align: right; letter-spacing: 1px; }
 
   /* ── FOCUS ── */
   .focus-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-left: 4px solid var(--gold);
-    border-radius: 3px; padding: 16px; margin-bottom: 18px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-left: 4px solid var(--gold); border-radius: 3px; padding: 16px; margin-bottom: 18px;
   }
-  .focus-text {
-    font-size: 15px; color: var(--text-mid); font-style: italic; line-height: 1.7;
-  }
+  .focus-text { font-size: 15px; color: var(--text-mid); font-style: italic; line-height: 1.7; }
 
   /* ── TWO-COL ── */
-  .two-col {
-    display: grid; grid-template-columns: 1fr 1fr;
-    gap: 14px; margin-bottom: 18px;
-  }
-  .col-header {
-    display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;
-  }
-
-  /* Wins */
-  .wins-card { background: var(--granted-bg); border: 1px solid var(--granted-bdr); border-radius: 3px; padding: 16px; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 18px; }
+  .wins-card     { background: var(--granted-bg);  border: 1px solid var(--granted-bdr);  border-radius: 3px; padding: 16px; }
+  .setbacks-card { background: var(--surface);     border: 1px solid var(--border);       border-radius: 3px; padding: 16px; }
   .win-item {
     display: flex; align-items: flex-start; gap: 10px;
     padding: 7px 0; border-bottom: 1px solid rgba(61,184,122,0.1);
     font-size: 13px; color: #c8e8d8;
   }
   .win-item:last-child { border-bottom: none; }
-  .win-dot {
-    width: 7px; height: 7px; border-radius: 50%;
-    background: var(--granted); flex-shrink: 0; margin-top: 5px;
-  }
-
-  /* Setbacks */
-  .setbacks-card { background: var(--surface); border: 1px solid var(--border); border-radius: 3px; padding: 16px; }
+  .win-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--granted); flex-shrink: 0; margin-top: 5px; }
   .setback-item {
     display: flex; align-items: flex-start; gap: 10px;
     padding: 7px 0; border-bottom: 1px solid var(--surface2);
     font-size: 13px; color: var(--text-mid);
   }
   .setback-item:last-child { border-bottom: none; }
-  .setback-dot {
-    width: 7px; height: 7px; border-radius: 50%;
-    background: var(--rebuilding); flex-shrink: 0; margin-top: 5px;
-  }
+  .setback-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--rebuilding); flex-shrink: 0; margin-top: 5px; }
   .empty-note { font-size: 12px; color: var(--granted); padding: 4px 0; }
   .empty-dim  { font-size: 12px; color: var(--text-dim); font-style: italic; padding: 4px 0; }
 
@@ -507,57 +460,48 @@ const CONFIG = {
   }
   .log-table tbody tr { border-bottom: 1px solid var(--surface2); }
   .log-table tbody tr:hover { background: var(--surface2); }
-  .log-table tbody td {
-    padding: 9px 10px; font-size: 12px; color: var(--text-mid); vertical-align: middle;
-  }
+  .log-table tbody td { padding: 9px 10px; font-size: 12px; color: var(--text-mid); vertical-align: middle; }
   .tl-date { font-family: var(--mono); font-size: 10px; color: var(--text-dim); white-space: nowrap; width: 86px; }
-  .tl-cat  { font-family: var(--mono); font-size: 9px; color: var(--text-dim); white-space: nowrap; }
+  .tl-cat  { font-family: var(--mono); font-size: 9px;  color: var(--text-dim); white-space: nowrap; }
   .tl-pts  { font-family: var(--mono); font-size: 11px; font-weight: 700; width: 46px; text-align: right; }
+  .tl-dir  { width: 32px; text-align: center; font-size: 14px; }
   .pts-pos { color: var(--granted); }
   .pts-neg { color: var(--suspended); }
-  .tl-dir  { width: 32px; text-align: center; font-size: 14px; }
   .dir-up  { color: var(--granted); }
   .dir-dn  { color: var(--suspended); }
   .dir-neu { color: var(--text-dim); }
+  .susp-tag {
+    display: inline-block; margin-left: 6px; padding: 1px 5px;
+    background: var(--suspended-bg); border: 1px solid var(--suspended-bdr);
+    border-radius: 2px; font-family: var(--mono); font-size: 8px;
+    color: var(--suspended); letter-spacing: 1px; vertical-align: middle;
+  }
 
-  /* ── GOAL BANNER ── */
+  /* ── GOAL ── */
   .goal-banner {
-    background: #111; border: 1px solid var(--border);
-    border-top: 3px solid var(--gold); border-radius: 3px;
-    padding: 22px 24px; margin-bottom: 18px; text-align: center;
+    background: #111; border: 1px solid var(--border); border-top: 3px solid var(--gold);
+    border-radius: 3px; padding: 22px 24px; margin-bottom: 18px; text-align: center;
   }
   .goal-text { font-size: 14px; color: #777; font-style: italic; line-height: 1.9; }
   .goal-text strong { color: var(--gold); font-style: normal; }
 
   /* ── FOOTER ── */
   .footer {
-    text-align: center; font-family: var(--mono); font-size: 10px;
-    color: #3a3a3a; letter-spacing: 1px; padding: 18px 0 8px;
-    border-top: 1px solid var(--border);
+    text-align: center; font-family: var(--mono); font-size: 10px; color: #3a3a3a;
+    letter-spacing: 1px; padding: 18px 0 8px; border-top: 1px solid var(--border);
   }
-
-  /* ── SCORE BAR TRACK ── */
-  .score-track {
-    height: 4px; background: var(--surface2); border-radius: 2px;
-    margin-top: 6px; overflow: hidden;
-  }
-  .score-fill { height: 100%; border-radius: 2px; transition: width 0.6s ease; }
 
   /* ── ANIMATIONS ── */
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(10px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
+  @keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
   .an { animation: fadeUp 0.35s ease both; }
-  .d1 { animation-delay: 0.04s; } .d2 { animation-delay: 0.10s; }
-  .d3 { animation-delay: 0.16s; } .d4 { animation-delay: 0.22s; }
-  .d5 { animation-delay: 0.28s; } .d6 { animation-delay: 0.34s; }
-  .d7 { animation-delay: 0.40s; } .d8 { animation-delay: 0.46s; }
+  .d1{animation-delay:.04s} .d2{animation-delay:.10s} .d3{animation-delay:.16s}
+  .d4{animation-delay:.22s} .d5{animation-delay:.28s} .d6{animation-delay:.34s}
+  .d7{animation-delay:.40s} .d8{animation-delay:.46s}
 
   /* ── RESPONSIVE ── */
   @media (max-width: 680px) {
-    .freedom-grid { grid-template-columns: repeat(2, 1fr); }
-    .freedom-grid .freedom-card:nth-child(5) { grid-column: 1 / -1; }
+    .freedom-grid { grid-template-columns: repeat(2,1fr); }
+    .freedom-grid .freedom-card:nth-child(5) { grid-column: 1/-1; }
     .two-col { grid-template-columns: 1fr; }
     .topbar-updated { display: none; }
     .print-btn { display: none; }
@@ -574,51 +518,40 @@ const CONFIG = {
     .page { padding: 14px 12px 40px; }
   }
 
-  /* ── PRINT STYLES ── */
+  /* ── PRINT ── */
   @media print {
-    body { background: #fff !important; color: #111 !important; }
-    .topbar { position: static !important; background: #f0f0f0 !important;
-      border-bottom: 3px solid #8b6914 !important; }
-    .topbar-title { color: #8b6914 !important; }
-    .topbar-score span { color: #333 !important; }
-    .print-btn { display: none !important; }
-    .page { padding: 12px 16px 20px; max-width: 100%; }
-
-    /* Flatten dark cards */
-    .position-banner, .card, .unlock-card, .focus-card,
-    .wins-card, .setbacks-card, .starting-note, .goal-banner {
-      background: #fff !important;
-      border-color: #ccc !important;
-    }
-    .wins-card { border-color: #2d6a2d !important; }
-    .unlock-card { border-color: #2d6a2d !important; background: #f6fff8 !important; }
-
-    /* Fix text */
-    .position-status { color: #333 !important; }
-    .position-message, .focus-text, .goal-text { color: #555 !important; }
-    .section-label { color: #8b6914 !important; border-color: #8b6914 !important; }
-    .log-table tbody td, .freedom-card-name, .win-item, .setback-item,
-    .unlock-behaviour { color: #333 !important; }
-    .tl-date, .tl-cat, .topbar-updated { color: #666 !important; }
-    .freedom-note, .freedom-override-tag { color: #777 !important; }
-    .starting-note { color: #666 !important; border-color: #ccc !important; background: #f9f9f9 !important; }
-    .goal-text { color: #666 !important; }
-    .goal-text strong { color: #8b6914 !important; }
-
-    /* Status badges in print */
-    .fc-GRANTED    { background: #f0fff4 !important; border-color: #2d6a2d !important; }
-    .fc-LIMITED    { background: #eef4ff !important; border-color: #2a5a8a !important; }
-    .fc-REBUILDING { background: #fffbf0 !important; border-color: #8b6914 !important; }
-    .fc-LOCKED     { background: #f5f5f5 !important; border-color: #aaa !important; }
-    .fc-SUSPENDED  { background: #fff0f0 !important; border-color: #8b2020 !important; }
-
-    .pts-pos { color: #2d6a2d !important; }
-    .pts-neg { color: #8b2020 !important; }
-    .dir-up  { color: #2d6a2d !important; }
-    .dir-dn  { color: #8b2020 !important; }
-    .score-fill { background: #8b6914 !important; }
-    .score-ring { border-color: #ccc !important; background: #fff !important; }
-    .score-num { color: #333 !important; }
+    body { background:#fff !important; color:#111 !important; }
+    .topbar { position:static !important; background:#f0f0f0 !important; border-bottom:3px solid #8b6914 !important; }
+    .topbar-title { color:#8b6914 !important; }
+    .print-btn { display:none !important; }
+    .page { padding:12px 16px 20px; max-width:100%; }
+    .position-banner,.card,.unlock-card,.focus-card,.wins-card,.setbacks-card,
+    .starting-note,.goal-banner,.suspensions-panel { background:#fff !important; border-color:#ccc !important; }
+    .wins-card { border-color:#2d6a2d !important; }
+    .unlock-card { border-color:#2d6a2d !important; background:#f6fff8 !important; }
+    .suspensions-panel { background:#fff8f8 !important; border-color:#c0392b !important; }
+    .position-status { color:#333 !important; }
+    .position-message,.focus-text,.goal-text { color:#555 !important; }
+    .section-label { color:#8b6914 !important; border-color:#8b6914 !important; }
+    .log-table tbody td,.freedom-card-name,.win-item,.setback-item,.unlock-behaviour { color:#333 !important; }
+    .tl-date,.tl-cat { color:#666 !important; }
+    .freedom-note,.freedom-override-tag { color:#777 !important; }
+    .goal-text { color:#666 !important; }
+    .goal-text strong { color:#8b6914 !important; }
+    .fc-GRANTED    { background:#f0fff4 !important; border-color:#2d6a2d !important; }
+    .fc-LIMITED    { background:#eef4ff !important; border-color:#2a5a8a !important; }
+    .fc-REBUILDING { background:#fffbf0 !important; border-color:#8b6914 !important; }
+    .fc-LOCKED     { background:#f5f5f5 !important; border-color:#aaa !important; }
+    .fc-SUSPENDED  { background:#fff0f0 !important; border-color:#8b2020 !important; }
+    .pts-pos { color:#2d6a2d !important; }
+    .pts-neg { color:#8b2020 !important; }
+    .dir-up  { color:#2d6a2d !important; }
+    .dir-dn  { color:#8b2020 !important; }
+    .score-fill { background:#8b6914 !important; }
+    .score-ring { border-color:#ccc !important; background:#fff !important; }
+    .score-num { color:#333 !important; }
+    .countdown-days { color:#8b2020 !important; }
+    .susp-days { color:#8b2020 !important; }
   }
 </style>
 </head>
@@ -638,16 +571,14 @@ const CONFIG = {
 
 <div class="page">
 
-  <!-- 1. CURRENT POSITION -->
+  <!-- POSITION -->
   <div class="position-banner an d1" id="position-banner">
     <div class="position-icon" id="pos-icon">◈</div>
     <div>
       <div class="position-label">Current Position</div>
       <div class="position-status" id="pos-status"></div>
       <div class="position-message" id="pos-message"></div>
-      <div class="score-track" style="max-width:340px">
-        <div class="score-fill" id="score-fill"></div>
-      </div>
+      <div class="score-track"><div class="score-fill" id="score-fill"></div></div>
     </div>
     <div class="position-score-block">
       <div class="score-ring" id="score-ring">
@@ -657,19 +588,25 @@ const CONFIG = {
     </div>
   </div>
 
-  <!-- Starting note -->
+  <!-- STARTING NOTE -->
   <div class="starting-note an d2" id="starting-note-block">
     <strong>Board Active From</strong>
     <span id="starting-note-text"></span>
   </div>
 
-  <!-- 2. FREEDOM STATUS -->
+  <!-- FREEDOM STATUS -->
   <div class="an d2">
     <div class="section-label">Freedom Status</div>
     <div class="freedom-grid" id="freedom-grid"></div>
   </div>
 
-  <!-- 3. NEXT UNLOCK -->
+  <!-- ACTIVE SUSPENSIONS (shown only when active) -->
+  <div class="an d3" id="suspensions-section" style="display:none">
+    <div class="section-label">Active Suspensions</div>
+    <div class="suspensions-panel" id="suspensions-panel"></div>
+  </div>
+
+  <!-- NEXT UNLOCK -->
   <div class="an d3">
     <div class="section-label">Next Unlock</div>
     <div class="unlock-card" id="unlock-card">
@@ -682,15 +619,13 @@ const CONFIG = {
     </div>
   </div>
 
-  <!-- 4. THIS WEEK'S FOCUS -->
+  <!-- FOCUS -->
   <div class="an d4">
     <div class="section-label">This Week's Focus</div>
-    <div class="focus-card">
-      <div class="focus-text" id="focus-text"></div>
-    </div>
+    <div class="focus-card"><div class="focus-text" id="focus-text"></div></div>
   </div>
 
-  <!-- 5. WINS + SETBACKS -->
+  <!-- WINS + SETBACKS -->
   <div class="two-col an d5">
     <div>
       <div class="section-label">Recent Wins</div>
@@ -702,7 +637,7 @@ const CONFIG = {
     </div>
   </div>
 
-  <!-- 6. TRUST LOG -->
+  <!-- TRUST LOG -->
   <div class="an d6">
     <div class="section-label">Trust Log</div>
     <div class="card gap">
@@ -721,7 +656,7 @@ const CONFIG = {
     </div>
   </div>
 
-  <!-- 7. GOAL -->
+  <!-- GOAL -->
   <div class="an d7">
     <div class="goal-banner">
       <div class="goal-text">
@@ -733,25 +668,38 @@ const CONFIG = {
   </div>
 
   <div class="footer" id="footer"></div>
-
 </div>
 
 <script>
 /* ── helpers ── */
 function el(id)  { return document.getElementById(id); }
 function esc(s)  { const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
-function fmt(iso){ /* "2026-06-04" → "4 Jun 2026" */
+function parseDate(iso) {
   const [y,m,d] = iso.split('-').map(Number);
-  return d+' '+['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][m-1]+' '+y;
+  return new Date(y, m-1, d);
+}
+function fmt(iso) {
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const [y,m,d] = iso.split('-').map(Number);
+  return d+' '+months[m-1]+' '+y;
+}
+function daysBetween(a, b) {
+  return Math.round((b - a) / 86400000);
+}
+function addDays(date, days) {
+  const d = new Date(date); d.setDate(d.getDate() + days); return d;
+}
+function isoFromDate(d) {
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 }
 
 /* ── position bands ── */
 const BANDS = [
-  { min:0,  max:20,  label:"SUSPENDED",       icon:"✕", msgFn: n=>`${n}'s trust account is currently suspended. Demonstrating genuine change is the only route forward.`,      color:"var(--suspended)" },
-  { min:21, max:40,  label:"RESTRICTED",       icon:"◈", msgFn: n=>`${n} is in a restricted position. Trust needs to be rebuilt through consistent, honest behaviour.`,         color:"var(--rebuilding)" },
-  { min:41, max:60,  label:"REBUILDING TRUST", icon:"◆", msgFn: n=>`${n} is actively rebuilding trust. Consistent choices over time are what move this forward.`,               color:"var(--rebuilding)" },
-  { min:61, max:80,  label:"MAKING PROGRESS",  icon:"◉", msgFn: n=>`${n} is making genuine progress. Keep building — the next freedoms are within reach.`,                     color:"var(--gold)" },
-  { min:81, max:100, label:"STRONG TRUST",     icon:"★", msgFn: n=>`${n} has strong trust right now. This reflects consistently good choices. Keep it going.`,                  color:"var(--granted)" }
+  { min:0,  max:20,  label:"SUSPENDED",       icon:"✕", color:"var(--suspended)",  msgFn: n=>`${n}'s trust account is currently suspended. Demonstrating genuine change is the only route forward.` },
+  { min:21, max:40,  label:"RESTRICTED",       icon:"◈", color:"var(--rebuilding)", msgFn: n=>`${n} is in a restricted position. Trust needs to be rebuilt through consistent, honest behaviour.` },
+  { min:41, max:60,  label:"REBUILDING TRUST", icon:"◆", color:"var(--rebuilding)", msgFn: n=>`${n} is actively rebuilding trust. Consistent choices over time are what move this forward.` },
+  { min:61, max:80,  label:"MAKING PROGRESS",  icon:"◉", color:"var(--gold)",       msgFn: n=>`${n} is making genuine progress. Keep building — the next freedoms are within reach.` },
+  { min:81, max:100, label:"STRONG TRUST",     icon:"★", color:"var(--granted)",    msgFn: n=>`${n} has strong trust right now. This reflects consistently good choices. Keep it going.` }
 ];
 
 /* ── auto freedom rules ── */
@@ -787,12 +735,53 @@ const AUTO_RULES = {
   ]
 };
 
-const STATUS_RANK = { GRANTED:5, LIMITED:4, REBUILDING:3, LOCKED:2, SUSPENDED:1 };
+const STATUS_RANK  = { GRANTED:5, LIMITED:4, REBUILDING:3, LOCKED:2, SUSPENDED:1 };
 const FREEDOM_ORDER = ["Local Daytime","Evening","Wider Travel","Parties","Sleepovers"];
 
-/* ── next unlock logic ── */
-function nextUnlockTarget(score, freedomStatuses) {
-  // Find the lowest-ranked non-GRANTED freedom
+/* ── suspension engine ── */
+function calcSuspensions(eventLog, today) {
+  // Returns a map: freedomName -> { active, daysRemaining, liftDate, reason, scoreFloor, pct }
+  const suspMap = {};
+
+  eventLog.forEach(ev => {
+    if (!ev.suspend) return;
+    const s = ev.suspend;
+    const freedom = s.freedom;
+    if (!freedom) return;
+
+    const startDate  = parseDate(ev.date);
+    const nominalEnd = addDays(startDate, s.days || 14);
+
+    // earlyLiftDate overrides the end date
+    const liftDate = s.earlyLiftDate
+      ? (parseDate(s.earlyLiftDate) < nominalEnd ? parseDate(s.earlyLiftDate) : nominalEnd)
+      : nominalEnd;
+
+    const daysRemaining = daysBetween(today, liftDate);
+    const totalDays     = daysBetween(startDate, liftDate);
+    const elapsed       = totalDays - daysRemaining;
+    const pct           = Math.max(0, Math.min(100, (elapsed / totalDays) * 100));
+
+    if (daysRemaining > 0) {
+      // If multiple suspensions target same freedom, pick the longest-running
+      if (!suspMap[freedom] || daysRemaining > suspMap[freedom].daysRemaining) {
+        suspMap[freedom] = {
+          active: true,
+          daysRemaining,
+          liftDate: isoFromDate(liftDate),
+          reason: s.reason || 'Suspended',
+          scoreFloor: s.scoreFloor || null,
+          earlyLift: !!s.earlyLiftDate,
+          pct
+        };
+      }
+    }
+  });
+  return suspMap;
+}
+
+/* ── next unlock ── */
+function nextUnlockTarget(score, freedomStatuses, suspMap) {
   let target = null, targetRank = 99;
   for (const name of FREEDOM_ORDER) {
     const s = freedomStatuses[name];
@@ -803,81 +792,108 @@ function nextUnlockTarget(score, freedomStatuses) {
   }
   if (!target) return null;
 
-  const rules = AUTO_RULES[target];
-  // Find next rule above current score
+  const susp = suspMap[target];
+  const rules = AUTO_RULES[target] || [];
   let nextScore = null, nextStatus = null;
   for (const rule of rules) {
     if (score <= rule.max) {
-      nextScore = rule.max === 999 ? 100 : rule.max + 1;
-      nextStatus = rule.status;
-      // Look one further for what they'll reach
       const idx = rules.indexOf(rule);
       if (idx + 1 < rules.length) {
-        nextStatus = rules[idx + 1].status;
+        nextStatus = rules[idx+1].status;
         nextScore  = rule.max + 1;
       }
       break;
     }
   }
-  return { name: target, score, nextScore, nextStatus, currentStatus: freedomStatuses[target] };
+  return { name: target, nextScore, nextStatus, currentStatus: freedomStatuses[target], suspended: !!susp, daysRemaining: susp ? susp.daysRemaining : 0 };
 }
 
 /* ── RENDER ── */
 function render() {
   const C = CONFIG;
+  const today = new Date();
+  today.setHours(0,0,0,0);
 
-  /* ── SCORE ── */
+  /* score */
   let score = C.startingScore || 50;
   C.eventLog.forEach(e => { score += (e.points || 0); });
   score = Math.max(0, Math.min(100, Math.round(score)));
 
-  /* ── BAND ── */
+  /* suspensions */
+  const suspMap = calcSuspensions(C.eventLog, today);
+
+  /* band */
   const band = BANDS.find(b => score >= b.min && score <= b.max) || BANDS[2];
 
-  /* ── TOPBAR ── */
-  el('tb-name').textContent      = C.name + "'s Board";
-  el('tb-score').textContent     = score;
-  el('tb-updated').textContent   = "Updated " + C.lastUpdated;
+  /* topbar */
+  el('tb-name').textContent    = C.name + "'s Board";
+  el('tb-score').textContent   = score;
+  el('tb-updated').textContent = "Updated " + C.lastUpdated;
 
-  /* ── POSITION BANNER ── */
+  /* position banner */
   const pi = el('pos-icon');
   pi.textContent = band.icon; pi.style.color = band.color; pi.style.borderColor = band.color;
   el('pos-status').textContent = band.label;
   el('pos-status').style.color = band.color;
   el('pos-message').textContent = band.msgFn(C.name);
   const fill = el('score-fill');
-  fill.style.width = score + '%';
-  fill.style.background = band.color;
+  fill.style.width = score+'%'; fill.style.background = band.color;
   const sn = el('score-num');
   sn.textContent = score; sn.style.color = band.color;
   el('score-ring').style.borderColor = band.color;
   el('position-banner').style.borderTopColor = band.color;
 
-  /* ── STARTING NOTE ── */
+  /* starting note */
   el('starting-note-text').innerHTML =
     `Board active from <strong>${esc(C.boardActiveFrom)}</strong>. ${esc(C.startingNote)}`;
 
-  /* ── FREEDOMS ── */
+  /* freedom grid */
   const freedomStatuses = {};
   const fg = el('freedom-grid');
   fg.innerHTML = '';
 
   FREEDOM_ORDER.forEach(name => {
     const override = C.freedomOverrides && C.freedomOverrides[name];
-    let status, note, isOverride = false;
+    const susp     = suspMap[name];
+    let status, note, isOverride = false, isSuspended = false;
 
-    if (override && override.overrideStatus) {
-      status = override.overrideStatus;
-      note   = override.overrideNote || '';
-      isOverride = true;
+    if (susp && susp.active) {
+      // Active suspension wins over everything except a manual override
+      if (override && override.overrideStatus) {
+        status = override.overrideStatus; note = override.overrideNote || ''; isOverride = true;
+      } else {
+        status = 'SUSPENDED'; note = susp.reason; isSuspended = true;
+      }
+    } else if (override && override.overrideStatus) {
+      status = override.overrideStatus; note = override.overrideNote || ''; isOverride = true;
     } else {
+      // Auto-calculate — apply scoreFloor if any suspension has one
+      let effectiveScore = score;
+      if (susp && susp.scoreFloor !== null) {
+        effectiveScore = Math.min(score, susp.scoreFloor);
+      }
       const rules = AUTO_RULES[name] || [];
-      const rule  = rules.find(r => score <= r.max) || rules[rules.length - 1];
+      const rule  = rules.find(r => effectiveScore <= r.max) || rules[rules.length-1];
       status = rule ? rule.status : 'LOCKED';
-      note   = rule ? rule.note : '';
+      note   = rule ? rule.note   : '';
     }
 
     freedomStatuses[name] = status;
+
+    let suspHtml = '';
+    if (isSuspended && susp) {
+      const pct = susp.pct;
+      suspHtml = `
+        <div class="suspension-countdown">
+          <div class="countdown-days">${susp.daysRemaining}</div>
+          <div class="countdown-label">DAYS REMAINING</div>
+          <div class="countdown-lifts">Lifts: ${fmt(susp.liftDate)}</div>
+          <div class="suspension-bar-track">
+            <div class="suspension-bar-fill" style="width:${pct}%"></div>
+          </div>
+          ${susp.earlyLift ? '<span class="early-lift-badge">EARLY LIFT APPLIED</span>' : ''}
+        </div>`;
+    }
 
     const d = document.createElement('div');
     d.className = `freedom-card fc-${status}`;
@@ -886,21 +902,46 @@ function render() {
       <div><span class="freedom-badge">${esc(status)}</span></div>
       <div class="freedom-note">${esc(note)}</div>
       ${isOverride ? '<span class="freedom-override-tag">Parent decision applied</span>' : ''}
+      ${suspHtml}
     `;
     fg.appendChild(d);
   });
 
-  /* ── NEXT UNLOCK ── */
-  const nu = nextUnlockTarget(score, freedomStatuses);
+  /* active suspensions panel */
+  const activeSusps = Object.entries(suspMap).filter(([,v]) => v.active);
+  const sp = el('suspensions-section');
+  if (activeSusps.length > 0) {
+    sp.style.display = 'block';
+    el('suspensions-panel').innerHTML = activeSusps.map(([name, s]) => `
+      <div class="suspension-row">
+        <div>
+          <div class="susp-freedom">${esc(name)}</div>
+          <div class="susp-days-label">DAYS LEFT</div>
+          <div class="susp-days">${s.daysRemaining}</div>
+        </div>
+        <div class="susp-detail">
+          <div class="susp-reason">${esc(s.reason)}</div>
+          <div class="susp-meta">Lifts: ${fmt(s.liftDate)}${s.earlyLift ? ' · Early lift applied' : ''}</div>
+          ${s.scoreFloor !== null ? `<div class="susp-meta">Score floor: ${s.scoreFloor} — positive events still count toward overall trust</div>` : ''}
+        </div>
+      </div>
+    `).join('');
+  } else {
+    sp.style.display = 'none';
+  }
+
+  /* next unlock */
+  const nu = nextUnlockTarget(score, freedomStatuses, suspMap);
   if (nu) {
     el('unlock-target').textContent = nu.name;
-    const meta = el('unlock-meta');
-    meta.innerHTML = `
-      <span class="unlock-chip chip-current">Current: ${esc(nu.currentStatus)}</span>
-      <span class="unlock-chip chip-needed">Target: ${esc(nu.nextStatus)} (${nu.nextScore}+ points)</span>
-    `;
-    const ul = el('unlock-behaviours');
-    ul.innerHTML = '';
+    let chips = `<span class="unlock-chip chip-current">Current: ${esc(nu.currentStatus)}</span>`;
+    if (nu.suspended) {
+      chips += `<span class="unlock-chip chip-suspended">Suspended: ${nu.daysRemaining} days remaining</span>`;
+    } else if (nu.nextScore) {
+      chips += `<span class="unlock-chip chip-needed">Target: ${esc(nu.nextStatus)} (${nu.nextScore}+ points)</span>`;
+    }
+    el('unlock-meta').innerHTML = chips;
+    const ul = el('unlock-behaviours'); ul.innerHTML = '';
     C.nextUnlockBehaviours.forEach(b => {
       const li = document.createElement('li');
       li.className = 'unlock-behaviour';
@@ -909,45 +950,40 @@ function render() {
     });
   }
 
-  /* ── FOCUS ── */
+  /* focus */
   el('focus-text').textContent = C.currentFocus;
 
-  /* ── WINS + SETBACKS ── */
-  // Derive wins/setbacks from visible eventLog
+  /* wins + setbacks from log */
   const visible = [...C.eventLog]
     .filter(e => e.visible !== false)
     .sort((a,b) => b.date.localeCompare(a.date));
-
   const wins     = visible.filter(e => e.points > 0).slice(0,6);
   const setbacks = visible.filter(e => e.points < 0).slice(0,6);
 
-  const wl = el('wins-list');
-  wl.innerHTML = wins.length === 0
+  el('wins-list').innerHTML = wins.length === 0
     ? '<div class="empty-dim">No wins recorded yet for this period.</div>'
     : wins.map(w => `<div class="win-item"><span class="win-dot"></span><span>${esc(w.event)}</span></div>`).join('');
 
-  const sl = el('setbacks-list');
-  sl.innerHTML = setbacks.length === 0
+  el('setbacks-list').innerHTML = setbacks.length === 0
     ? '<div class="empty-note">No setbacks recorded this period ✓</div>'
     : setbacks.map(s => `<div class="setback-item"><span class="setback-dot"></span><span>${esc(s.event)}</span></div>`).join('');
 
-  /* ── TRUST LOG ── */
-  const lb = el('log-body');
-  lb.innerHTML = '';
+  /* trust log */
+  const lb = el('log-body'); lb.innerHTML = '';
   const sorted = [...C.eventLog]
     .filter(e => e.visible !== false)
     .sort((a,b) => b.date.localeCompare(a.date));
 
   sorted.forEach(e => {
-    const isPos  = e.points >= 0;
-    const dirCls = e.points > 0 ? 'dir-up' : e.points < 0 ? 'dir-dn' : 'dir-neu';
-    const dirIcon= e.points > 0 ? '▲' : e.points < 0 ? '▼' : '—';
-    const ptsCls = e.points > 0 ? 'pts-pos' : e.points < 0 ? 'pts-neg' : '';
-    const ptsStr = e.points > 0 ? '+'+e.points : ''+e.points;
+    const dirCls  = e.points > 0 ? 'dir-up'  : e.points < 0 ? 'dir-dn'  : 'dir-neu';
+    const dirIcon = e.points > 0 ? '▲' : e.points < 0 ? '▼' : '—';
+    const ptsCls  = e.points > 0 ? 'pts-pos' : e.points < 0 ? 'pts-neg' : '';
+    const ptsStr  = e.points > 0 ? '+'+e.points : ''+e.points;
+    const suspTag = e.suspend ? `<span class="susp-tag">SUSP</span>` : '';
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td class="tl-date">${esc(fmt(e.date))}</td>
-      <td>${esc(e.event)}</td>
+      <td>${esc(e.event)}${suspTag}</td>
       <td class="tl-cat">${esc(e.category||'')}</td>
       <td class="tl-pts ${ptsCls}">${ptsStr}</td>
       <td class="tl-dir ${dirCls}">${dirIcon}</td>
@@ -955,13 +991,12 @@ function render() {
     lb.appendChild(tr);
   });
 
-  /* ── FOOTER ── */
+  /* footer */
   el('footer').textContent =
     `TRUST & FREEDOM BOARD · ${C.name.toUpperCase()} · UPDATED: ${C.lastUpdated.toUpperCase()} · ACTIVE FROM: ${C.boardActiveFrom.toUpperCase()}`;
 }
 
 render();
 </script>
-
 </body>
 </html>

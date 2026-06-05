@@ -93,6 +93,27 @@ const CONFIG = {
   eventLog: [
     {
       date:      "2026-06-05",
+      event:     "Missed curfew - no contact",
+      category:  "Reliability",
+      entryType: "event",
+      points:    -6,
+      addedBy:   "Dad",
+      addedAt:   "2026-06-05T17:26:00",
+      notes:     "",
+      visible:   true,
+      suspend: {
+        freedom:         "Evening",
+        days:            6,
+        reason:          "Curfew breach - no contact",
+        scoreFloor:      null,
+        earlyLiftDate:   null,
+        imposedDate:     "2026-06-05",
+        imposedBy:       "Dad",
+        originalEndDate: "2026-06-11"
+      }
+    },
+    {
+      date:      "2026-06-05",
       event:     "Unproductive day - screens all day",
       category:  "General",
       entryType: "diary",

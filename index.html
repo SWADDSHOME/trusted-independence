@@ -569,6 +569,7 @@ const CONFIG = {
   <div class="topbar-right">
     <div class="topbar-score">Score: <span id="tb-score"></span></div>
     <div class="topbar-updated" id="tb-updated"></div>
+    <div class="topbar-updated" id="tb-version" style="color:#444;letter-spacing:1px"></div>
     <div class="view-toggle">
       <button class="view-btn" data-view="overview" onclick="setView('overview')">Overview</button>
       <button class="view-btn" data-view="detail"   onclick="setView('detail')">Detail</button>
@@ -1411,6 +1412,7 @@ function render(){
   el('tb-name').textContent   =C.name+"'s Board";
   el('tb-score').textContent  =score;
   el('tb-updated').textContent="Updated "+C.lastUpdated;
+  var tbv=el('tb-version'); if(tbv) tbv.textContent='v1.04';
 
   /* 1 position */
   const pi=el('pos-icon');

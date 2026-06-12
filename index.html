@@ -2,1808 +2,1059 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<!-- TRUST & FREEDOM BOARD v1.03 | 12 June 2026 -->
+<!-- INTEGRITY UPDATE v1.04 | 12 June 2026 -->
 
 <script>
-/* Legacy browser detection - runs before anything else - ES5 only */
 (function() {
   var isLegacy = false;
-  var reasons = [];
-  var ua = navigator.userAgent || '';
-
-  // UA-based detection first (most reliable for iOS 10)
-  // iOS 10 = Version/10. in Safari UA
-  var iosMatch = ua.match(/OS (\d+)_/);
-  if (iosMatch && parseInt(iosMatch[1], 10) < 11) {
-    isLegacy = true;
-    reasons.push('ios-' + iosMatch[1]);
+  try { eval('const __t=1;'); } catch(e) { isLegacy = true; }
+  try { eval('var __f = () => 1;'); } catch(e) { isLegacy = true; }
+  try { eval('var __s = `t`;'); } catch(e) { isLegacy = true; }
+  window.__IU_LEGACY = isLegacy;
+  if (isLegacy) {
+    // Show manual mode notice after page loads
+    window.addEventListener('load', function() {
+      var n = document.getElementById('legacy-notice');
+      if (n) n.style.display = 'block';
+      // Hide API commit buttons
+      var btns = document.querySelectorAll('.api-commit-btn');
+      for (var i = 0; i < btns.length; i++) btns[i].style.display = 'none';
+    });
   }
-
-  // Also catch old Android WebKit
-  if (ua.indexOf('Android') > -1 && ua.indexOf('Chrome') === -1) {
-    var androidMatch = ua.match(/Android (\d+)/);
-    if (androidMatch && parseInt(androidMatch[1], 10) < 6) {
-      isLegacy = true;
-      reasons.push('android-old');
-    }
-  }
-
-  // Feature detection as secondary check
-  try { eval('const __t=1;'); } catch(e) { isLegacy = true; reasons.push('no-const'); }
-  try { eval('var __f = () => 1;'); } catch(e) { isLegacy = true; reasons.push('no-arrow'); }
-  try { eval('var __s = `t`;'); } catch(e) { isLegacy = true; reasons.push('no-template'); }
-
-  // CSS vars
-  try {
-    if (!window.CSS || !window.CSS.supports || !window.CSS.supports('color', 'var(--t)')) {
-      isLegacy = true; reasons.push('no-css-vars');
-    }
-  } catch(e) { isLegacy = true; reasons.push('css-check-err'); }
-
-  // Promise
-  if (typeof Promise === 'undefined') { isLegacy = true; reasons.push('no-promise'); }
-
-  window.__TFB_LEGACY = isLegacy;
-  window.__TFB_LEGACY_REASONS = reasons;
-  window.__TFB_UA = ua;
 })();
 </script>
-
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Trust &amp; Freedom Board - Vaughan</title>
-<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Barlow:ital,wght@0,400;0,500;0,600;1,400&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-
-<script>
-/* ============================================================
-   TRUST & FREEDOM BOARD
-   Version: 1.03
-   Last updated: 5 June 2026
-   ============================================================
-   PARENT CONFIGURATION -- EDIT THIS SECTION ONLY
-   ============================================================
-   Use the Integrity Update form to generate entries for eventLog.
-   Targets, Focus and Activities can also be updated via the form.
-
-   TWO-TRACK SYSTEM:
-   Track 1 -- SCORE: startingScore + sum of all event points (0-100)
-   Track 2 -- SUSPENSIONS: timed freedom locks, independent of score
-
-   defaultView: "overview" | "detail" | "custom"
-   ============================================================ */
-
-const CONFIG = {
-
-  /* - IDENTITY ----------------------------- */
-  name:            "Vaughan",
-  lastUpdated:     "5 June 2026",
-  boardActiveFrom: "5 June 2026",
-  defaultView:     "overview",
-
-  /* - STARTING SCORE (0-100) ---------------------- */
-  startingScore: 30,
-
-  /* - STARTING NOTE - shown in Board Context (detail view bottom) --- */
-  startingNote: "This board starts from today - 5 June 2026. It is a forward-looking record. The starting position reflects where things are honestly. Everything from here is built through behaviour and choices.",
-
-  /* - THIS WEEK'S FOCUS - updatable via Integrity Update form ----- */
-  currentFocus: "Add this week's focus via the Integrity Update form.",
-
-  /* - TARGETS - updatable via Integrity Update form ----------
-     achieved: false = in progress  |  achieved: true = completed
-  ------------------------------------ */
-  targets: [
-    { label: "No Detentions",                                        achieved: false },
-    { label: "On Time to School",                                    achieved: false },
-    { label: "Merit Award",                                          achieved: false },
-    { label: "Positive / Great School Report",                       achieved: false },
-    { label: "Positive feedback from a teacher or trusted adult",    achieved: false }
-  ],
-
-  /* - IMPORTANT ACTIVITIES - updatable via Integrity Update form ----
-     active: true = currently available
-     active: false = currently suspended
-  ------------------------------------ */
-  highCostActivities: [
-    { label: "Sunday Football Team",   active: true,  suspendReason: "" },
-    { label: "Saturday Football Team", active: true,  suspendReason: "" },
-    { label: "Work Experience",        active: true,  suspendReason: "" },
-    { label: "Job",                    active: true,  suspendReason: "" },
-    { label: "Dog Walking",            active: true,  suspendReason: "" }
-  ],
-
-  /* - NEXT UNLOCK BEHAVIOURS ---------------------- */
-  nextUnlockBehaviours: [
-    "Honest communication - tell us before we find out",
-    "No hidden vaping or substance use",
-    "No school incidents or behaviour concerns",
-    "Keep agreed curfews without reminders",
-    "Contact us if plans change"
-  ],
-
-  /* - FREEDOM OVERRIDES - null = auto-calculated from score ------
-     overrideStatus options: "GRANTED" | "LIMITED" | "REBUILDING" | "LOCKED" | "SUSPENDED"
-  ------------------------------------ */
-  freedomOverrides: {
-    "Local Daytime": { overrideStatus: null, overrideNote: "" },
-    "Evening":       { overrideStatus: null, overrideNote: "" },
-    "Wider Travel":  { overrideStatus: null, overrideNote: "" },
-    "Parties":       { overrideStatus: null, overrideNote: "" },
-    "Sleepovers":    { overrideStatus: null, overrideNote: "" }
-  },
-
-  /* - EVENT LOG -----------------------------
-     Managed via Integrity Update form. Do not edit manually.
-     points: +/-3/6/9/12/15 (or 0 for diary/request entries)
-     entryType: "event" | "request" | "diary"
-  ------------------------------------ */
-  eventLog: []
-};
-</script>
-
+<title>Integrity Update</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Barlow:wght@400;500&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg:            #1a1a1c;
-    --surface:       #232326;
-    --surface2:      #2a2a2e;
-    --border:        #38383c;
-    --gold:          #c8a84a;
-    --gold-dim:      #6e5c28;
-    --text:          #e6e2d6;
-    --text-mid:      #aaa9a0;
-    --text-dim:      #666;
-    --mono:          'Share Tech Mono', monospace;
-    --granted:       #3db87a;
-    --granted-bg:    #152a1e;
-    --granted-bdr:   #1e4a30;
-    --limited:       #5b9bd5;
-    --limited-bg:    #0e1e30;
-    --limited-bdr:   #1a3550;
-    --rebuilding:    #d4872a;
-    --rebuilding-bg: #2a1a08;
-    --rebuilding-bdr:#4a3010;
-    --locked:        #777;
-    --locked-bg:     #1e1e20;
-    --locked-bdr:    #333;
-    --suspended:     #c0392b;
-    --suspended-bg:  #280a08;
-    --suspended-bdr: #5a1010;
-    --req-pending:   #c8a84a;
-    --req-approved:  #3db87a;
-    --req-declined:  #555;
-    --req-clash:     #c0392b;
+    --bg:#1a1a1c;--surface:#232326;--surface2:#2a2a2e;--border:#38383c;
+    --gold:#c8a84a;--gold-dim:#6e5c28;--text:#e6e2d6;--text-mid:#aaa9a0;--text-dim:#666;
+    --granted:#3db87a;--granted-bg:#152a1e;--granted-bdr:#1e4a30;
+    --rebuilding:#d4872a;--rebuilding-bg:#2a1a08;
+    --suspended:#c0392b;--suspended-bg:#280a08;--suspended-bdr:#5a1010;
+    --mono:'Share Tech Mono',monospace;
   }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;font-size:15px;min-height:100vh;}
 
-  * { box-sizing:border-box; margin:0; padding:0; }
-  html { scroll-behavior:smooth; }
-  body { background:#1a1a1c; color:#e6e2d6; font-family:'Barlow',Arial,sans-serif; font-size:15px; line-height:1.5; min-height:100vh; }
+  /* -- AUTH -- */
+  .auth-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px;}
+  .auth-box{background:var(--surface);border:1px solid var(--border);border-top:4px solid var(--gold);border-radius:4px;padding:40px;width:100%;max-width:420px;}
+  .auth-title{font-family:'Rajdhani',Arial,sans-serif;font-size:22px;font-weight:700;letter-spacing:4px;color:var(--gold);margin-bottom:4px;text-align:center;}
+  .auth-sub{font-size:12px;color:var(--text-dim);letter-spacing:2px;text-transform:uppercase;margin-bottom:32px;text-align:center;}
 
-  /* - TOPBAR - */
-  .topbar { background:#111; border-bottom:3px solid var(--gold); padding:0 20px; display:flex; align-items:center; justify-content:space-between; height:54px; position:sticky; top:0; z-index:100; gap:12px; }
-  .topbar-left { display:flex; align-items:center; gap:14px; }
-  .topbar-title { font-family:'Rajdhani',Arial,sans-serif; font-size:17px; font-weight:700; letter-spacing:4px; color:var(--gold); text-transform:uppercase; white-space:nowrap; }
-  .topbar-name  { font-family:'Rajdhani',Arial,sans-serif; font-size:13px; font-weight:600; color:var(--text-dim); letter-spacing:2px; text-transform:uppercase; white-space:nowrap; }
-  .topbar-right { display:flex; align-items:center; gap:10px; }
-  .topbar-score { font-family:var(--mono); font-size:11px; color:var(--text-dim); }
-  .topbar-score span { font-weight:700; color:var(--gold); }
-  .topbar-updated { font-family:var(--mono); font-size:10px; color:var(--text-dim); white-space:nowrap; }
-  .view-toggle { display:flex; border:1px solid var(--border); border-radius:3px; overflow:hidden; }
-  .view-btn { background:none; border:none; color:var(--text-dim); padding:5px 11px; cursor:pointer; font-family:'Rajdhani',Arial,sans-serif; font-size:11px; font-weight:600; letter-spacing:2px; text-transform:uppercase; transition:all 0.15s; border-right:1px solid var(--border); }
-  .view-btn:last-child { border-right:none; }
-  .view-btn.active { background:var(--gold); color:#111; }
-  .view-btn:hover:not(.active) { color:var(--gold); }
-  .print-btn { background:none; border:1px solid var(--border); color:var(--text-dim); padding:5px 12px; border-radius:3px; cursor:pointer; font-family:'Rajdhani',Arial,sans-serif; font-size:11px; font-weight:600; letter-spacing:2px; text-transform:uppercase; transition:all 0.15s; }
-  .print-btn:hover { border-color:var(--gold); color:var(--gold); }
+  /* password hint */
+  .auth-hint-label{font-family:'Rajdhani',Arial,sans-serif;font-size:10px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--gold-dim);margin-bottom:10px;}
+  .auth-hint-row{display:flex;align-items:center;gap:10px;margin-bottom:20px;}
+  .auth-hint-chip{background:var(--surface2);border:1px solid var(--gold-dim);border-radius:3px;padding:10px 16px;font-family:var(--mono);font-size:16px;color:var(--gold);letter-spacing:2px;flex:1;}
+  .auth-copy-btn{background:none;border:1px solid var(--gold-dim);color:var(--gold-dim);padding:10px 14px;border-radius:3px;cursor:pointer;font-family:'Rajdhani',Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;transition:all 0.15s;white-space:nowrap;}
+  .auth-copy-btn:hover{border-color:var(--gold);color:var(--gold);}
+  .auth-copy-btn.copied{border-color:var(--granted);color:var(--granted);}
+  .auth-plus{font-family:var(--mono);font-size:18px;color:var(--text-dim);font-weight:700;}
+  .auth-suffix{font-family:var(--mono);font-size:20px;color:var(--text-dim);font-weight:700;letter-spacing:2px;}
 
-  /* - LAYOUT - */
-  .page { max-width:920px; margin:0 auto; padding:20px 16px 60px; }
-  .section-label { font-family:'Rajdhani',Arial,sans-serif; font-size:10px; font-weight:700; letter-spacing:4px; text-transform:uppercase; color:var(--gold-dim); border-left:3px solid var(--gold-dim); padding-left:10px; margin-bottom:12px; }
-  .card { background:var(--surface); border:1px solid var(--border); border-radius:3px; padding:18px; }
-  .gap { margin-bottom:18px; }
-  .two-col { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:18px; align-items:start; }
+  .auth-input-label{font-family:'Rajdhani',Arial,sans-serif;font-size:10px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--gold-dim);margin-bottom:6px;display:block;}
+  .auth-input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:3px;padding:12px 16px;color:var(--text);font-family:var(--mono);font-size:16px;letter-spacing:3px;outline:none;transition:border-color 0.2s;}
+  .auth-input:focus{border-color:var(--gold);}
+  .auth-btn{width:100%;margin-top:14px;background:var(--gold);border:none;border-radius:3px;padding:12px;font-family:'Rajdhani',Arial,sans-serif;font-size:14px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#111;cursor:pointer;}
+  .auth-error{color:var(--suspended);font-size:12px;margin-top:10px;min-height:16px;text-align:center;}
 
-  /* - VIEW PANELS - */
-  .view-overview, .view-detail, .view-custom { display:none; }
-  .show-overview .view-overview { display:block; }
-  .show-detail   .view-detail   { display:block; }
-  .show-custom   .view-custom   { display:block; }
+  /* -- MAIN -- */
+  .main-screen{display:none;}
+  .topbar{background:#111;border-bottom:3px solid var(--gold);padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:54px;gap:10px;}
+  .topbar-title{font-family:'Rajdhani',Arial,sans-serif;font-size:17px;font-weight:700;letter-spacing:4px;color:var(--gold);text-transform:uppercase;white-space:nowrap;}
+  .topbar-tabs{display:flex;border:1px solid var(--border);border-radius:3px;overflow:hidden;}
+  .tab-btn{background:none;border:none;color:var(--text-dim);padding:6px 11px;cursor:pointer;font-family:'Rajdhani',Arial,sans-serif;font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;transition:all 0.15s;border-right:1px solid var(--border);}
+  .tab-btn:last-child{border-right:none;}
+  .tab-btn.active{background:var(--gold);color:#111;}
+  .tab-btn:hover:not(.active){color:var(--gold);}
+  .github-bar{background:#0d1a0d;border-bottom:1px solid var(--granted-bdr);padding:7px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+  .github-bar-note{font-family:var(--mono);font-size:10px;color:#4a8a5a;letter-spacing:1px;}
+  .github-bar a{font-family:'Rajdhani',Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--gold);text-decoration:none;border:1px solid var(--gold-dim);padding:4px 10px;border-radius:2px;white-space:nowrap;}
+  .api-status{font-family:var(--mono);font-size:10px;letter-spacing:1px;padding:3px 8px;border-radius:2px;}
+  .api-status.ok{color:var(--granted);background:var(--granted-bg);border:1px solid var(--granted-bdr);}
+  .api-status.no{color:var(--text-dim);background:var(--surface2);border:1px solid var(--border);}
+  .page{max-width:700px;margin:0 auto;padding:24px 16px 60px;}
+  .panel{display:none;}
+  .panel.active{display:block;}
 
-  /* - 1 POSITION BANNER - */
-  .position-banner { background:var(--surface); border:1px solid var(--border); border-radius:3px; padding:22px 20px 18px; margin-bottom:18px; display:grid; grid-template-columns:auto 1fr auto; gap:18px; align-items:center; border-top:4px solid var(--gold); }
-  .position-icon { width:54px; height:54px; flex-shrink:0; border:2px solid currentColor; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:22px; background:#111; }
-  .position-label { font-family:'Rajdhani',Arial,sans-serif; font-size:10px; font-weight:700; letter-spacing:4px; text-transform:uppercase; color:var(--gold-dim); margin-bottom:5px; }
-  .position-status { font-family:'Rajdhani',Arial,sans-serif; font-size:28px; font-weight:700; letter-spacing:3px; line-height:1; margin-bottom:6px; }
-  .position-message { font-size:13px; color:var(--text-mid); font-style:italic; line-height:1.6; }
-  .score-track { height:4px; background:var(--surface2); border-radius:2px; margin-top:8px; overflow:hidden; max-width:340px; }
-  .score-fill  { height:100%; border-radius:2px; transition:width 0.6s ease; }
-  .score-ring  { width:64px; height:64px; border-radius:50%; border:3px solid var(--border); display:flex; flex-direction:column; align-items:center; justify-content:center; background:#111; margin-left:auto; }
-  .score-num   { font-family:var(--mono); font-size:20px; font-weight:700; line-height:1; }
-  .score-label { font-family:var(--mono); font-size:8px; color:var(--text-dim); letter-spacing:1px; margin-top:2px; }
+  .section-label{font-family:'Rajdhani',Arial,sans-serif;font-size:10px;font-weight:700;letter-spacing:4px;text-transform:uppercase;color:var(--gold-dim);border-left:3px solid var(--gold-dim);padding-left:10px;margin-bottom:14px;}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:3px;padding:20px;margin-bottom:20px;}
 
-  /* - 2 BOARD CONTEXT (detail only, bottom) - */
-  .board-context { background:var(--surface2); border:1px solid var(--border); border-left:3px solid var(--gold-dim); border-radius:2px; padding:12px 14px; margin-bottom:18px; font-size:12px; color:var(--text-mid); font-style:italic; line-height:1.6; }
-  .board-context strong { font-family:'Rajdhani',Arial,sans-serif; font-size:9px; letter-spacing:3px; text-transform:uppercase; color:var(--gold-dim); font-style:normal; display:block; margin-bottom:4px; }
+  .form-row{margin-bottom:16px;}
+  .form-row label{display:block;font-family:'Rajdhani',Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--gold-dim);margin-bottom:6px;}
+  .form-row input,.form-row select,.form-row textarea{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:3px;padding:10px 12px;color:var(--text);font-family:'Barlow',sans-serif;font-size:14px;outline:none;transition:border-color 0.2s;}
+  .form-row input:focus,.form-row select:focus,.form-row textarea:focus{border-color:var(--gold);}
+  .form-row select option{background:var(--surface2);}
+  .form-row textarea{resize:vertical;min-height:60px;}
+  .form-row .hint{font-size:11px;color:var(--text-dim);margin-top:4px;}
+  .two-col-form{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
 
-  /* - 3 FLAT FREEDOM GRID (overview) - */
-  .freedom-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:10px; margin-bottom:18px; }
-  .freedom-card { border-radius:3px; padding:14px 10px 12px; text-align:center; border:1px solid var(--border); background:var(--surface); }
-  .fc-GRANTED    { background:var(--granted-bg);    border-color:var(--granted-bdr);    border-top:4px solid var(--granted); }
-  .fc-LIMITED    { background:var(--limited-bg);    border-color:var(--limited-bdr);    border-top:4px solid var(--limited); }
-  .fc-REBUILDING { background:var(--rebuilding-bg); border-color:var(--rebuilding-bdr); border-top:4px solid var(--rebuilding); }
-  .fc-LOCKED     { background:var(--locked-bg);     border-color:var(--locked-bdr);     border-top:4px solid var(--locked); }
-  .fc-SUSPENDED  { background:var(--suspended-bg);  border-color:var(--suspended-bdr);  border-top:4px solid var(--suspended); }
-  .freedom-card-name { font-family:'Rajdhani',Arial,sans-serif; font-size:13px; font-weight:700; color:var(--text); margin-bottom:8px; line-height:1.2; }
-  .freedom-badge { display:inline-block; font-family:var(--mono); font-size:9px; font-weight:700; letter-spacing:1.5px; padding:3px 7px; border-radius:2px; margin-bottom:6px; }
-  .fc-GRANTED    .freedom-badge { color:var(--granted);   border:1px solid var(--granted);   background:rgba(61,184,122,0.1); }
-  .fc-LIMITED    .freedom-badge { color:var(--limited);   border:1px solid var(--limited);   background:rgba(91,155,213,0.1); }
-  .fc-REBUILDING .freedom-badge { color:var(--rebuilding);border:1px solid var(--rebuilding);background:rgba(212,135,42,0.1); }
-  .fc-LOCKED     .freedom-badge { color:var(--locked);    border:1px solid var(--locked);    background:rgba(100,100,100,0.1); }
-  .fc-SUSPENDED  .freedom-badge { color:var(--suspended); border:1px solid var(--suspended); background:rgba(192,57,43,0.1); }
-  .freedom-note { font-size:10px; color:var(--text-dim); line-height:1.4; margin-bottom:4px; }
-  .suspension-countdown { margin-top:8px; padding-top:8px; border-top:1px solid var(--suspended-bdr); }
-  .countdown-days  { font-family:var(--mono); font-size:18px; font-weight:700; color:var(--suspended); line-height:1; }
-  .countdown-label { font-size:9px; color:#884; letter-spacing:1px; margin-top:2px; }
-  .countdown-lifts { font-size:9px; color:#666; margin-top:3px; }
-  .susp-bar-track  { height:3px; background:#3a1010; border-radius:2px; margin-top:6px; overflow:hidden; }
-  .susp-bar-fill   { height:100%; background:var(--suspended); border-radius:2px; }
+  /* type selector */
+  .type-selector{display:flex;gap:8px;flex-wrap:wrap;}
+  .type-opt{padding:8px 16px;border-radius:3px;border:1px solid var(--border);background:var(--surface2);color:var(--text-dim);font-family:'Rajdhani',Arial,sans-serif;font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:all 0.15s;}
+  .type-opt.sel-event   {background:var(--granted-bg);   border-color:var(--granted);   color:var(--granted);}
+  .type-opt.sel-request {background:rgba(200,168,74,0.1);border-color:var(--gold);      color:var(--gold);}
+  .type-opt.sel-diary   {background:var(--surface);      border-color:var(--text-dim);  color:var(--text-mid);}
 
-  /* - 3 CAROUSEL (detail) - */
-  .carousel-section { margin-bottom:24px; }
-  .carousel-wrap { position:relative; height:240px; overflow:hidden; }
-  .carousel-track { position:absolute; top:0; left:0; width:100%; height:100%; }
-  .c-card { position:absolute; top:50%; left:50%; border-radius:6px; padding:16px 12px; text-align:center; transition:all 0.45s cubic-bezier(0.25,0.46,0.45,0.94); cursor:pointer; user-select:none; display:flex; flex-direction:column; align-items:center; justify-content:center; border-top:4px solid transparent; }
-  .c-card-name { font-family:'Rajdhani',Arial,sans-serif; font-weight:700; line-height:1.2; }
-  .c-badge { display:inline-block; font-family:var(--mono); font-weight:700; letter-spacing:1.5px; padding:3px 8px; border-radius:2px; margin-top:6px; }
-  .c-note  { line-height:1.3; margin-top:6px; }
-  .c-countdown { margin-top:8px; }
-  .c-days  { font-family:var(--mono); font-weight:700; color:var(--suspended); }
-  .c-lifts { font-size:9px; color:#666; margin-top:2px; }
-  .c-bar-track { height:3px; background:#3a1010; border-radius:2px; margin-top:5px; overflow:hidden; width:100%; }
-  .c-bar-fill  { height:100%; background:var(--suspended); border-radius:2px; }
-  .carousel-arrow { position:absolute; top:50%; transform:translateY(-50%); background:none; border:1px solid var(--border); color:var(--text-dim); width:32px; height:32px; border-radius:50%; cursor:pointer; font-size:16px; display:flex; align-items:center; justify-content:center; z-index:10; transition:all 0.15s; }
-  .carousel-arrow:hover { border-color:var(--gold); color:var(--gold); }
-  .carousel-arrow.left  { left:4px; }
-  .carousel-arrow.right { right:4px; }
-  .carousel-dots { display:flex; justify-content:center; gap:6px; margin-top:10px; }
-  .c-dot { width:6px; height:6px; border-radius:50%; background:var(--border); cursor:pointer; transition:all 0.2s; }
-  .c-dot.active { background:var(--gold); transform:scale(1.3); }
-  .cc-GRANTED    { background:var(--granted-bg);    border-top-color:var(--granted); }
-  .cc-LIMITED    { background:var(--limited-bg);    border-top-color:var(--limited); }
-  .cc-REBUILDING { background:var(--rebuilding-bg); border-top-color:var(--rebuilding); }
-  .cc-LOCKED     { background:var(--locked-bg);     border-top-color:var(--locked); }
-  .cc-SUSPENDED  { background:var(--suspended-bg);  border-top-color:var(--suspended); }
-  .cc-GRANTED    .c-badge { color:var(--granted);   border:1px solid var(--granted);   background:rgba(61,184,122,0.1); }
-  .cc-LIMITED    .c-badge { color:var(--limited);   border:1px solid var(--limited);   background:rgba(91,155,213,0.1); }
-  .cc-REBUILDING .c-badge { color:var(--rebuilding);border:1px solid var(--rebuilding);background:rgba(212,135,42,0.1); }
-  .cc-LOCKED     .c-badge { color:var(--locked);    border:1px solid var(--locked);    background:rgba(100,100,100,0.1); }
-  .cc-SUSPENDED  .c-badge { color:var(--suspended); border:1px solid var(--suspended); background:rgba(192,57,43,0.1); }
+  /* points */
+  .pts-selector{display:flex;gap:6px;flex-wrap:wrap;}
+  .pts-opt{padding:7px 14px;border-radius:3px;border:1px solid var(--border);background:var(--surface2);color:var(--text-dim);font-family:var(--mono);font-size:13px;cursor:pointer;transition:all 0.15s;}
+  .pts-opt:hover{border-color:var(--gold);}
+  .pts-opt.sel-pos{background:var(--granted-bg);border-color:var(--granted);color:var(--granted);}
+  .pts-opt.sel-neg{background:var(--suspended-bg);border-color:var(--suspended);color:var(--suspended);}
 
-  /* - 4 NEXT UNLOCK - */
-  .unlock-card { background:var(--granted-bg); border:1px solid var(--granted-bdr); border-left:4px solid var(--granted); border-radius:3px; padding:18px; margin-bottom:18px; }
-  .unlock-header { display:flex; align-items:center; gap:12px; margin-bottom:4px; flex-wrap:wrap; }
-  .unlock-arrow  { font-size:18px; color:var(--granted); }
-  .unlock-target { font-family:'Rajdhani',Arial,sans-serif; font-size:20px; font-weight:700; letter-spacing:2px; color:var(--granted); }
-  .unlock-meta   { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px; margin-top:4px; }
-  .unlock-chip   { font-family:var(--mono); font-size:10px; padding:3px 8px; border-radius:2px; letter-spacing:1px; }
-  .chip-current  { background:var(--rebuilding-bg); color:var(--rebuilding); border:1px solid var(--rebuilding-bdr); }
-  .chip-needed   { background:var(--granted-bg);    color:var(--granted);    border:1px solid var(--granted-bdr); }
-  .chip-suspended{ background:var(--suspended-bg);  color:var(--suspended);  border:1px solid var(--suspended-bdr); }
-  .unlock-behaviours { list-style:none; }
-  .unlock-behaviour { display:flex; align-items:flex-start; gap:10px; padding:7px 0; border-bottom:1px solid rgba(61,184,122,0.1); font-size:13px; color:#bbb; }
-  .unlock-behaviour:last-child { border-bottom:none; }
-  .ub-marker { width:6px; height:6px; border-radius:50%; background:var(--granted); flex-shrink:0; margin-top:5px; }
+  /* days */
+  .days-selector{display:flex;gap:6px;flex-wrap:wrap;}
+  .days-opt{padding:7px 14px;border-radius:3px;border:1px solid var(--border);background:var(--surface2);color:var(--text-dim);font-family:var(--mono);font-size:13px;cursor:pointer;transition:all 0.15s;}
+  .days-opt.selected{background:var(--suspended-bg);border-color:var(--suspended);color:var(--suspended);}
 
-  /* - 5 SUSPENSIONS - */
-  .suspensions-panel { background:var(--suspended-bg); border:1px solid var(--suspended-bdr); border-left:4px solid var(--suspended); border-radius:3px; padding:16px; margin-bottom:18px; }
-  .suspension-row { display:flex; align-items:flex-start; gap:14px; padding:10px 0; border-bottom:1px solid rgba(192,57,43,0.15); }
-  .suspension-row:last-child { border-bottom:none; padding-bottom:0; }
-  .susp-left { min-width:80px; text-align:right; }
-  .susp-freedom { font-family:'Rajdhani',Arial,sans-serif; font-weight:700; font-size:13px; color:var(--suspended); }
-  .susp-detail { flex:1; }
-  .susp-reason { font-size:12px; color:#c88; margin-bottom:3px; }
-  .susp-meta   { font-family:var(--mono); font-size:10px; color:#884; letter-spacing:0.5px; margin-bottom:2px; }
-  .susp-days   { font-family:var(--mono); font-size:22px; font-weight:700; color:var(--suspended); }
-  .susp-days-label { font-family:var(--mono); font-size:9px; color:#884; letter-spacing:1px; }
+  /* toggle */
+  .toggle-row{display:flex;align-items:center;gap:12px;}
+  .toggle{position:relative;width:44px;height:24px;flex-shrink:0;}
+  .toggle input{opacity:0;width:0;height:0;}
+  .toggle-slider{position:absolute;inset:0;background:var(--border);border-radius:12px;cursor:pointer;transition:0.3s;}
+  .toggle-slider::before{content:'';position:absolute;width:18px;height:18px;left:3px;top:3px;background:#888;border-radius:50%;transition:0.3s;}
+  .toggle input:checked+.toggle-slider{background:var(--gold-dim);}
+  .toggle input:checked+.toggle-slider::before{transform:translateX(20px);background:var(--gold);}
+  .toggle-label{font-size:13px;color:var(--text-mid);}
 
-  /* - 5 WINS / SETBACKS - */
-  .wins-card     { background:var(--granted-bg); border:1px solid var(--granted-bdr); border-radius:3px; padding:16px; }
-  .setbacks-card { background:var(--surface);    border:1px solid var(--border);      border-radius:3px; padding:16px; }
-  .win-item  { display:flex; align-items:flex-start; gap:10px; padding:7px 0; border-bottom:1px solid rgba(61,184,122,0.1); font-size:13px; color:#c8e8d8; }
-  .win-item:last-child { border-bottom:none; }
-  .win-dot   { width:7px; height:7px; border-radius:50%; background:var(--granted); flex-shrink:0; margin-top:5px; }
-  .setback-item { display:flex; align-items:flex-start; gap:10px; padding:7px 0; border-bottom:1px solid var(--surface2); font-size:13px; color:var(--text-mid); }
-  .setback-item:last-child { border-bottom:none; }
-  .setback-dot  { width:7px; height:7px; border-radius:50%; background:var(--rebuilding); flex-shrink:0; margin-top:5px; }
+  /* blocks */
+  .suspend-block{display:none;background:var(--suspended-bg);border:1px solid var(--suspended-bdr);border-radius:3px;padding:16px;margin-top:16px;}
+  .suspend-block.visible{display:block;}
+  .request-block{display:none;background:rgba(200,168,74,0.06);border:1px solid var(--gold-dim);border-radius:3px;padding:16px;margin-top:16px;}
+  .request-block.visible{display:block;}
 
-  /* - 7 FOCUS - */
-  .focus-card { background:var(--surface); border:1px solid var(--border); border-left:4px solid var(--gold); border-radius:3px; padding:16px; margin-bottom:18px; }
-  .focus-text { font-size:15px; color:var(--text-mid); font-style:italic; line-height:1.7; }
+  /* quick actions */
+  .qa-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px;margin-bottom:8px;}
+  .qa-btn{background:var(--surface2);border:1px solid var(--border);border-radius:3px;padding:10px 12px;cursor:pointer;text-align:left;display:flex;flex-direction:column;gap:3px;transition:all 0.15s;}
+  .qa-btn:hover{border-color:var(--gold);}
+  .qa-btn.positive{border-left:3px solid var(--granted);}
+  .qa-btn.negative{border-left:3px solid var(--suspended);}
+  .qa-title{font-family:'Rajdhani',Arial,sans-serif;font-size:13px;font-weight:600;color:var(--text);}
+  .qa-meta{font-family:var(--mono);font-size:10px;color:var(--text-dim);}
+  .qa-pts-pos{color:var(--granted);}
+  .qa-pts-neg{color:var(--suspended);}
+  .qa-label{font-family:'Rajdhani',Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--gold-dim);margin-bottom:8px;margin-top:4px;}
 
-  /* - 8 TARGETS - */
-  .targets-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:10px; margin-bottom:18px; }
-  .target-card  { background:var(--surface); border:1px solid var(--border); border-radius:3px; padding:12px 14px; display:flex; align-items:center; gap:10px; }
-  .target-card.achieved { background:var(--granted-bg); border-color:var(--granted-bdr); }
-  .target-icon  { font-size:16px; flex-shrink:0; }
-  .target-label { font-size:12px; color:var(--text-mid); line-height:1.3; }
-  .target-card.achieved .target-label { color:var(--granted); }
+  /* submit + output */
+  .submit-btn{width:100%;background:var(--gold);border:none;border-radius:3px;padding:14px;font-family:'Rajdhani',Arial,sans-serif;font-size:16px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#111;cursor:pointer;transition:opacity 0.2s;margin-top:8px;}
+  .submit-btn:hover{opacity:0.85;}
+  .submit-btn:disabled{opacity:0.4;cursor:not-allowed;}
 
-  /* - 9 IMPORTANT ACTIVITIES - */
-  .hca-grid { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:18px; }
-  .hca-item  { display:flex; align-items:center; gap:7px; padding:6px 12px; border-radius:3px; font-family:'Rajdhani',Arial,sans-serif; font-size:12px; font-weight:600; letter-spacing:0.5px; border:1px solid var(--border); background:var(--surface); color:var(--text-mid); }
-  .hca-item.active   { border-color:var(--granted-bdr);   background:var(--granted-bg);   color:var(--granted); }
-  .hca-item.suspended{ border-color:var(--suspended-bdr); background:var(--suspended-bg); color:var(--suspended); }
-  .hca-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
-  .hca-item.active    .hca-dot { background:var(--granted); }
-  .hca-item.suspended .hca-dot { background:var(--suspended); }
+  /* API commit button */
+  .api-commit-btn{width:100%;background:#1a3a1a;border:2px solid var(--granted);border-radius:3px;padding:14px;font-family:'Rajdhani',Arial,sans-serif;font-size:15px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--granted);cursor:pointer;transition:all 0.2s;margin-top:10px;display:none;}
+  .api-commit-btn:hover{background:var(--granted);color:#111;}
+  .api-commit-btn.visible{display:block;}
+  .api-commit-btn:disabled{opacity:0.4;cursor:not-allowed;}
+  .api-result{margin-top:10px;padding:10px 14px;border-radius:3px;font-family:var(--mono);font-size:12px;display:none;}
+  .api-result.success{background:var(--granted-bg);border:1px solid var(--granted-bdr);color:var(--granted);}
+  .api-result.error  {background:var(--suspended-bg);border:1px solid var(--suspended-bdr);color:var(--suspended);}
+  .api-result.loading{background:var(--surface2);border:1px solid var(--border);color:var(--text-dim);}
 
-  /* - 10 GOAL - */
-  .goal-banner { background:#111; border:1px solid var(--border); border-top:3px solid var(--gold); border-radius:3px; padding:22px 24px; margin-bottom:18px; text-align:center; }
-  .goal-text { font-size:14px; color:#777; font-style:italic; line-height:1.9; }
-  .goal-text strong { color:var(--gold); font-style:normal; }
+  .output-section{display:none;}
+  .output-section.visible{display:block;}
+  .output-box{background:#0d1f0d;border:2px solid var(--granted-bdr);border-radius:3px;padding:16px;}
+  .output-code{font-family:var(--mono);font-size:11px;color:#8de8b8;white-space:pre;overflow-x:auto;line-height:1.6;}
+  .copy-btn{width:100%;margin-top:10px;background:var(--granted-bg);border:2px solid var(--granted);border-radius:3px;padding:10px;font-family:'Rajdhani',Arial,sans-serif;font-size:13px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--granted);cursor:pointer;transition:all 0.2s;}
+  .copy-btn:hover{background:var(--granted);color:#111;}
+  .copy-confirm{text-align:center;font-size:12px;color:var(--granted);margin-top:6px;min-height:16px;}
 
-  /* - 12 FULL TRUST LOG - */
-  .log-table { width:100%; border-collapse:collapse; }
-  .log-table thead th { font-family:'Rajdhani',Arial,sans-serif; font-size:9px; font-weight:700; letter-spacing:3px; text-transform:uppercase; color:var(--gold-dim); padding:7px 10px; text-align:left; border-bottom:2px solid var(--border); }
-  .log-table tbody tr { border-bottom:1px solid var(--surface2); }
-  .log-table tbody tr:hover { background:var(--surface2); }
-  .log-table tbody td { padding:9px 10px; font-size:12px; color:var(--text-mid); vertical-align:top; }
-  .tl-date { font-family:var(--mono); font-size:10px; color:var(--text-dim); white-space:nowrap; width:80px; }
-  .tl-cat  { font-family:var(--mono); font-size:9px;  color:var(--text-dim); white-space:nowrap; }
-  .tl-by   { font-family:var(--mono); font-size:9px;  color:var(--text-dim); white-space:nowrap; }
-  .tl-pts  { font-family:var(--mono); font-size:11px; font-weight:700; width:46px; text-align:right; }
-  .tl-dir  { width:28px; text-align:center; font-size:14px; }
-  .pts-pos { color:var(--granted); }
-  .pts-neg { color:var(--suspended); }
-  .pts-zer { color:var(--text-dim); }
-  .dir-up  { color:var(--granted); }
-  .dir-dn  { color:var(--suspended); }
-  .dir-neu { color:var(--text-dim); }
-  .susp-tag    { display:inline-block; margin-left:6px; padding:1px 5px; background:var(--suspended-bg); border:1px solid var(--suspended-bdr); border-radius:2px; font-family:var(--mono); font-size:8px; color:var(--suspended); letter-spacing:1px; vertical-align:middle; }
-  .addedby-tag { display:block; font-family:var(--mono); font-size:9px; color:var(--text-dim); margin-top:2px; }
-  .susp-audit  { display:block; font-family:var(--mono); font-size:9px; color:#884; margin-top:2px; line-height:1.5; }
+  /* manual fallback */
+  .manual-fallback{margin-top:16px;background:var(--surface2);border:1px solid var(--border);border-left:3px solid var(--gold-dim);border-radius:3px;padding:14px;}
+  .manual-fallback summary{font-family:'Rajdhani',Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--gold-dim);cursor:pointer;outline:none;}
+  .manual-fallback ol{padding-left:18px;margin-top:10px;}
+  .manual-fallback li{font-size:12px;color:var(--text-mid);margin-bottom:5px;line-height:1.5;}
+  .manual-fallback li strong{color:var(--text);}
+  .url{font-family:var(--mono);font-size:10px;background:var(--surface);padding:2px 6px;border-radius:2px;color:var(--gold);}
 
-  /* - REQUEST ROW STYLES - */
-  .log-row-pending  { background:rgba(200,168,74,0.06);  border-left:3px solid var(--req-pending)  !important; }
-  .log-row-approved { background:rgba(61,184,122,0.06);  border-left:3px solid var(--req-approved) !important; }
-  .log-row-declined { background:rgba(80,80,80,0.04);    border-left:3px solid var(--req-declined)  !important; opacity:0.6; }
-  .log-row-clash    { background:rgba(192,57,43,0.08);   border-left:3px solid var(--req-clash)    !important; }
-  .log-row-diary    { border-left:3px solid var(--border) !important; opacity:0.8; }
-  .req-badge { display:inline-block; margin-left:6px; padding:1px 6px; border-radius:2px; font-family:var(--mono); font-size:8px; font-weight:700; letter-spacing:1px; vertical-align:middle; }
-  .req-pending  { background:rgba(200,168,74,0.15);  color:var(--req-pending);  border:1px solid var(--req-pending); }
-  .req-approved { background:rgba(61,184,122,0.15);  color:var(--req-approved); border:1px solid var(--req-approved); }
-  .req-declined { background:rgba(80,80,80,0.15);    color:#888;                border:1px solid #555; }
-  .req-clash    { background:rgba(192,57,43,0.15);   color:var(--req-clash);    border:1px solid var(--req-clash); }
-  .req-detail   { display:block; font-size:11px; color:var(--text-dim); margin-top:3px; font-style:italic; }
-  .diary-tag    { display:inline-block; margin-left:6px; padding:1px 5px; background:var(--surface2); border:1px solid var(--border); border-radius:2px; font-family:var(--mono); font-size:8px; color:var(--text-dim); letter-spacing:1px; vertical-align:middle; }
+  /* edit existing (BL-17) */
+  .existing-entry{background:var(--surface2);border:1px solid var(--border);border-radius:3px;padding:12px 14px;margin-bottom:8px;cursor:pointer;transition:all 0.15s;}
+  .existing-entry:hover{border-color:var(--gold);}
+  .existing-entry.selected{border-color:var(--gold);background:rgba(200,168,74,0.06);}
+  .ee-date{font-family:var(--mono);font-size:10px;color:var(--text-dim);}
+  .ee-event{font-size:13px;color:var(--text);margin:3px 0;}
+  .ee-meta{font-family:var(--mono);font-size:10px;color:var(--text-dim);}
+  .ee-badge{display:inline-block;padding:1px 6px;border-radius:2px;font-family:var(--mono);font-size:8px;font-weight:700;letter-spacing:1px;margin-left:6px;vertical-align:middle;}
+  .ee-request{background:rgba(200,168,74,0.1);color:var(--gold);border:1px solid var(--gold-dim);}
+  .ee-suspend{background:var(--suspended-bg);color:var(--suspended);border:1px solid var(--suspended-bdr);}
+  .edit-form{display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);}
+  .edit-form.visible{display:block;}
 
-  /* - PENDING REQUESTS STRIP (overview) - */
-  .requests-strip { margin-bottom:18px; }
-  .req-row { display:flex; align-items:center; gap:12px; padding:10px 14px; background:var(--surface); border:1px solid var(--border); border-radius:3px; margin-bottom:8px; border-left:4px solid var(--req-pending); }
-  .req-row.approved { border-left-color:var(--req-approved); background:var(--granted-bg); }
-  .req-row.clash    { border-left-color:var(--req-clash); background:var(--suspended-bg); }
-  .req-event-name { flex:1; font-size:13px; color:var(--text); font-weight:500; }
-  .req-event-date { font-family:var(--mono); font-size:10px; color:var(--text-dim); white-space:nowrap; }
-  .req-status-chip { font-family:var(--mono); font-size:9px; font-weight:700; letter-spacing:1px; padding:2px 7px; border-radius:2px; white-space:nowrap; }
-  .req-clash-note { font-size:10px; color:var(--req-clash); margin-top:2px; }
+  /* targets/activities */
+  .target-list,.activity-list{display:flex;flex-direction:column;gap:8px;}
+  .target-row,.activity-row{display:flex;align-items:center;gap:12px;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:3px;}
+  .target-row.achieved{background:var(--granted-bg);border-color:var(--granted-bdr);}
+  .activity-row.active{background:var(--granted-bg);border-color:var(--granted-bdr);}
+  .activity-row.suspended{background:var(--suspended-bg);border-color:var(--suspended-bdr);}
+  .target-check{width:22px;height:22px;border:2px solid var(--border);border-radius:3px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:var(--surface);transition:all 0.15s;font-size:13px;}
+  .target-check.done{background:var(--granted);border-color:var(--granted);color:#fff;}
+  .activity-toggle{width:22px;height:22px;border-radius:50%;border:2px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;transition:all 0.15s;}
+  .activity-toggle.on{background:var(--granted);border-color:var(--granted);color:#fff;}
+  .activity-toggle.off{background:var(--suspended-bg);border-color:var(--suspended);color:var(--suspended);}
+  .row-text{flex:1;font-size:13px;color:var(--text-mid);}
+  .target-row.achieved .row-text,.activity-row.active .row-text{color:var(--granted);}
+  .activity-row.suspended .row-text{color:var(--suspended);}
+  .del-btn{background:none;border:1px solid var(--suspended-bdr);color:var(--suspended);width:22px;height:22px;border-radius:2px;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .add-row{display:flex;gap:8px;margin-top:12px;}
+  .add-input{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:3px;padding:8px 12px;color:var(--text);font-family:'Barlow',sans-serif;font-size:13px;outline:none;}
+  .add-input:focus{border-color:var(--gold);}
+  .add-btn{background:var(--gold);border:none;border-radius:3px;padding:8px 16px;font-family:'Rajdhani',Arial,sans-serif;font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#111;cursor:pointer;}
+  .action-btn{margin-top:12px;background:var(--gold);border:none;border-radius:3px;padding:10px 24px;font-family:'Rajdhani',Arial,sans-serif;font-size:13px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#111;cursor:pointer;}
 
-  /* - EMPTY STATES - */
-  .empty-note { font-size:12px; color:var(--granted); padding:4px 0; }
-  .empty-dim  { font-size:12px; color:var(--text-dim); font-style:italic; padding:4px 0; }
+  .focus-edit{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:3px;padding:12px;color:var(--text);font-family:'Barlow',sans-serif;font-size:14px;outline:none;resize:vertical;min-height:80px;line-height:1.6;}
+  .focus-edit:focus{border-color:var(--gold);}
 
-  /* - FOOTER - */
-  .footer { text-align:center; font-family:var(--mono); font-size:10px; color:#3a3a3a; letter-spacing:1px; padding:18px 0 8px; border-top:1px solid var(--border); }
+  /* history */
+  .history-table{width:100%;border-collapse:collapse;}
+  .history-table thead th{font-family:'Rajdhani',Arial,sans-serif;font-size:9px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--gold-dim);padding:7px 10px;text-align:left;border-bottom:2px solid var(--border);}
+  .history-table tbody tr{border-bottom:1px solid var(--surface2);cursor:pointer;}
+  .history-table tbody tr:hover{background:var(--surface2);}
+  .history-table tbody td{padding:9px 10px;font-size:12px;color:var(--text-mid);}
+  .h-date{font-family:var(--mono);font-size:10px;color:var(--text-dim);white-space:nowrap;}
+  .h-pts-pos{color:var(--granted);font-family:var(--mono);font-weight:700;}
+  .h-pts-neg{color:var(--suspended);font-family:var(--mono);font-weight:700;}
 
-  /* - ANIMATIONS - */
-  @keyframes fadeUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
-  .an{animation:fadeUp 0.35s ease both}
-  .d1{animation-delay:.04s}.d2{animation-delay:.10s}.d3{animation-delay:.16s}
-  .d4{animation-delay:.22s}.d5{animation-delay:.28s}.d6{animation-delay:.34s}
+  .val-notice{padding:10px 14px;border-radius:3px;font-size:13px;margin-bottom:12px;display:none;background:var(--rebuilding-bg);border:1px solid var(--rebuilding);color:var(--rebuilding);}
 
-  /* - CUSTOM VIEW - */
-  .cv-toolbar { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; background:var(--surface2); border:1px solid var(--border); border-left:3px solid var(--gold-dim); border-radius:3px; padding:12px 16px; margin-bottom:16px; }
-  .cv-toolbar-left { display:flex; align-items:center; gap:10px; font-family:'Rajdhani',Arial,sans-serif; font-size:13px; font-weight:700; letter-spacing:2px; color:var(--gold); text-transform:uppercase; }
-  .cv-toolbar-right { display:flex; gap:8px; flex-wrap:wrap; }
-  .cv-add-btn { background:var(--surface); border:1px solid var(--border); color:var(--text-mid); padding:6px 12px; border-radius:3px; cursor:pointer; font-family:'Rajdhani',Arial,sans-serif; font-size:11px; font-weight:700; letter-spacing:2px; text-transform:uppercase; transition:all 0.15s; }
-  .cv-add-btn:hover { border-color:var(--gold); color:var(--gold); }
-  .cv-reset-btn { background:none; border:1px solid var(--suspended-bdr); color:var(--suspended); padding:6px 12px; border-radius:3px; cursor:pointer; font-family:'Rajdhani',Arial,sans-serif; font-size:11px; font-weight:700; letter-spacing:2px; text-transform:uppercase; transition:all 0.15s; }
-  .cv-reset-btn:hover { background:var(--suspended-bg); }
-  .cv-save-status { font-family:var(--mono); font-size:11px; color:var(--granted); }
-  .cv-pool-wrap { margin-bottom:16px; }
-  .cv-pool-label { font-family:'Rajdhani',Arial,sans-serif; font-size:10px; font-weight:700; letter-spacing:3px; text-transform:uppercase; color:var(--text-dim); margin-bottom:8px; }
-  .cv-pool { display:flex; flex-wrap:wrap; gap:8px; min-height:44px; padding:10px; background:var(--surface2); border:1px dashed var(--border); border-radius:3px; transition:background 0.15s; }
-  .cv-pool.dragover { background:var(--surface); border-color:var(--gold); }
-  .cv-chip { display:flex; align-items:center; gap:6px; padding:6px 10px; background:var(--surface); border:1px solid var(--border); border-radius:3px; cursor:grab; user-select:none; transition:all 0.15s; font-family:'Rajdhani',Arial,sans-serif; font-size:12px; font-weight:600; letter-spacing:1px; color:var(--text-mid); white-space:nowrap; }
-  .cv-chip:hover { border-color:var(--gold); color:var(--gold); }
-  .cv-chip.dragging { opacity:0.35; }
-  .cv-zone { margin-bottom:14px; background:var(--surface); border:1px solid var(--border); border-radius:3px; overflow:hidden; }
-  .cv-zone.zone-dragover { border-color:var(--gold); }
-  .cv-zone.zone-dragging { opacity:0.3; }
-  .cv-zone-header { display:flex; align-items:center; gap:8px; padding:8px 12px; background:var(--surface2); border-bottom:1px solid var(--border); }
-  .cv-zone-grip { font-size:14px; color:var(--text-dim); cursor:grab; flex-shrink:0; padding:2px 4px; user-select:none; }
-  .cv-zone-type-btn { font-family:'Rajdhani',Arial,sans-serif; font-size:10px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--gold-dim); background:none; border:1px solid var(--gold-dim); border-radius:2px; padding:3px 8px; cursor:pointer; transition:all 0.15s; }
-  .cv-zone-type-btn:hover { color:var(--gold); border-color:var(--gold); }
-  .cv-zone-arrows { display:flex; gap:3px; }
-  .cv-zone-arrow,.cv-zone-delete,.cv-placed-arrow,.cv-placed-eject { background:none; border:1px solid var(--border); color:var(--text-dim); width:22px; height:22px; border-radius:2px; cursor:pointer; font-size:10px; display:flex; align-items:center; justify-content:center; transition:all 0.15s; flex-shrink:0; }
-  .cv-zone-arrow:hover,.cv-placed-arrow:hover { border-color:var(--gold); color:var(--gold); }
-  .cv-zone-delete { margin-left:auto; border-color:var(--suspended-bdr); color:var(--suspended); }
-  .cv-zone-delete:hover,.cv-placed-eject:hover { background:var(--suspended-bg); border-color:var(--suspended); color:var(--suspended); }
-  .cv-zone-body { padding:10px; }
-  .cv-zone-body.two-col-body { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-  .cv-col,.cv-fullwidth-drop { min-height:56px; padding:6px; background:var(--bg); border:1px dashed var(--border); border-radius:3px; transition:background 0.15s; }
-  .cv-col.dragover,.cv-fullwidth-drop.dragover { background:var(--surface2); border-color:var(--gold); }
-  .cv-col-label { font-family:var(--mono); font-size:9px; color:var(--text-dim); letter-spacing:2px; text-transform:uppercase; margin-bottom:6px; text-align:center; }
-  .cv-col-empty,.cv-fullwidth-empty { font-size:11px; color:var(--text-dim); font-style:italic; text-align:center; padding:8px 0; }
-  .cv-placed { margin-bottom:8px; border-radius:3px; overflow:hidden; }
-  .cv-placed:last-child { margin-bottom:0; }
-  .cv-placed.dragging { opacity:0.3; }
-  .cv-placed-header { display:flex; align-items:center; gap:6px; padding:6px 10px; background:var(--surface2); border:1px solid var(--border); border-radius:3px 3px 0 0; cursor:grab; user-select:none; border-bottom:2px solid var(--gold-dim); }
-  .cv-placed-grip { font-size:12px; color:var(--gold-dim); flex-shrink:0; }
-  .cv-placed-name { font-family:'Rajdhani',Arial,sans-serif; font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--text-dim); flex:1; }
-  .cv-placed-arrows { display:flex; gap:3px; margin-left:auto; }
-  .cv-placed-content { border:1px solid var(--border); border-top:none; border-radius:0 0 3px 3px; padding:12px; background:var(--surface); }
+  /* settings panel */
+  .settings-field{margin-bottom:16px;}
+  .settings-field label{display:block;font-family:'Rajdhani',Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--gold-dim);margin-bottom:6px;}
+  .settings-field input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:3px;padding:10px 12px;color:var(--text);font-family:var(--mono);font-size:13px;outline:none;}
+  .settings-field input:focus{border-color:var(--gold);}
+  .settings-note{font-size:12px;color:var(--text-dim);line-height:1.6;margin-bottom:16px;padding:10px 12px;background:var(--surface2);border-radius:3px;border-left:3px solid var(--gold-dim);}
 
-  /* - RESPONSIVE - */
-  @media (max-width:680px) {
-    .freedom-grid { grid-template-columns:repeat(2,1fr); }
-    .freedom-grid .freedom-card:nth-child(5) { grid-column:1/-1; }
-    .two-col { grid-template-columns:1fr; }
-    .cv-zone-body.two-col-body { grid-template-columns:1fr; }
-    .cv-toolbar { flex-direction:column; align-items:flex-start; }
-    .topbar-updated,.topbar-score,.print-btn { display:none; }
-    .position-banner { grid-template-columns:auto 1fr; }
-    .position-score-block { display:none; }
-    .position-status { font-size:22px; }
-    .carousel-wrap { height:180px; }
-  }
-  @media (max-width:400px) {
-    .topbar-title { font-size:14px; letter-spacing:2px; }
-    .page { padding:14px 12px 40px; }
-  }
-
-  /* - PRINT - */
-  @media print {
-    body { background:#fff !important; color:#111 !important; }
-    .topbar { position:static !important; background:#f0f0f0 !important; border-bottom:3px solid #8b6914 !important; }
-    .topbar-title { color:#8b6914 !important; }
-    .print-btn,.view-toggle { display:none !important; }
-    .page { padding:12px 16px 20px; max-width:100%; }
-    .goal-text { color:#666 !important; }
-    .goal-text strong { color:#8b6914 !important; }
-  }
-
-  /* Legacy rendering path */
-  .legacy-board { display:block; font-family:Arial,sans-serif; padding:12px; background:#1a1a1c; color:#e6e2d6; }
-  .leg-section { margin-bottom:16px; padding:12px; background:#232326; border:1px solid #38383c; border-radius:3px; }
-  .leg-title { font-size:11px; letter-spacing:3px; text-transform:uppercase; color:#6e5c28; margin-bottom:8px; font-weight:bold; }
-  .leg-status { font-size:24px; font-weight:bold; letter-spacing:2px; margin-bottom:4px; }
-  .leg-msg { font-size:13px; color:#aaa; font-style:italic; }
-  .leg-score { font-size:28px; font-weight:bold; color:#c8a84a; }
-  .leg-table { width:100%; border-collapse:collapse; font-size:12px; }
-  .leg-table td, .leg-table th { padding:6px 8px; border-bottom:1px solid #333; text-align:left; }
-  .leg-table th { color:#6e5c28; font-size:10px; text-transform:uppercase; letter-spacing:2px; }
-  .leg-freedom-row { padding:8px 0; border-bottom:1px solid #333; }
-  .leg-freedom-name { font-size:13px; font-weight:bold; color:#e6e2d6; }
-  .leg-badge { display:inline-block; padding:2px 8px; border-radius:2px; font-size:10px; font-weight:bold; letter-spacing:1px; margin-left:8px; }
-  .leg-granted   { color:#3db87a; border:1px solid #3db87a; }
-  .leg-limited   { color:#5b9bd5; border:1px solid #5b9bd5; }
-  .leg-rebuilding{ color:#d4872a; border:1px solid #d4872a; }
-  .leg-locked    { color:#777;    border:1px solid #777; }
-  .leg-suspended { color:#c0392b; border:1px solid #c0392b; }
-  .leg-note { font-size:11px; color:#666; margin-top:2px; }
-  .leg-item { padding:5px 0; border-bottom:1px solid #2a2a2e; font-size:13px; color:#aaa; }
-  .leg-item:last-child { border-bottom:none; }
-  .leg-dot-pos { color:#3db87a; margin-right:6px; }
-  .leg-dot-neg { color:#c0392b; margin-right:6px; }
-  .leg-dot-neu { color:#666; margin-right:6px; }
-  .leg-debug { margin-top:20px; padding:8px 12px; background:#111; border:1px solid #333; border-radius:3px; font-size:10px; color:#555; font-family:monospace; line-height:1.6; }
-  .leg-error { padding:20px; background:#280a08; border:1px solid #5a1010; border-radius:3px; color:#c0392b; font-size:14px; text-align:center; margin:20px 0; }
-
-  /* Print styles */
-  @media print {
-    body { background:#fff !important; color:#111 !important; }
-    .topbar { position:static !important; background:#f0f0f0 !important; border-bottom:3px solid #8b6914 !important; }
-    .topbar-title { color:#8b6914 !important; }
-    .print-btn, .view-toggle { display:none !important; }
-    .page { padding:12px 16px 20px; max-width:100%; }
-    .goal-text { color:#666 !important; }
-    .goal-text strong { color:#8b6914 !important; }
-    .legacy-board { display:none !important; }
-  }
-
+  @media(max-width:500px){.two-col-form{grid-template-columns:1fr;}.qa-grid{grid-template-columns:1fr;}.topbar-tabs{display:none;}}
 </style>
 </head>
 <body>
 
-<div class="topbar">
-  <div class="topbar-left">
-    <div class="topbar-title">Trust &amp; Freedom</div>
-    <div class="topbar-name" id="tb-name"></div>
-  </div>
-  <div class="topbar-right">
-    <div class="topbar-score">Score: <span id="tb-score"></span></div>
-    <div class="topbar-updated" id="tb-updated"></div>
-    <div class="view-toggle">
-      <button class="view-btn" data-view="overview" onclick="setView('overview')">Overview</button>
-      <button class="view-btn" data-view="detail"   onclick="setView('detail')">Detail</button>
-      <button class="view-btn" data-view="custom"   onclick="setView('custom')">Custom</button>
-    </div>
-    <button class="print-btn" onclick="window.print()"> Print</button>
+<!-- -- AUTH -- -->
+<div class="auth-screen" id="auth-screen">
+  <div class="auth-box">
+    <div class="auth-title">Integrity Update</div>
+    <div class="auth-sub">Parent Access Only</div>
+    <input class="auth-input" type="password" id="auth-input" placeholder="" onkeydown="if(event.key==='Enter')checkAuth()">
+    <button class="auth-btn" onclick="checkAuth()">Enter</button>
+    <div class="auth-error" id="auth-error"></div>
   </div>
 </div>
 
+<!-- -- MAIN -- -->
+<div class="main-screen" id="main-screen">
 
-<!-- LEGACY BOARD - visible by default, hidden after modern render succeeds -->
-<div class="legacy-board" id="legacy-board">
-  <div id="leg-banner" style="background:#2a1a08;border:1px solid #c8a84a;border-radius:3px;padding:8px 14px;margin-bottom:14px;font-family:Arial,sans-serif;font-size:12px;color:#c8a84a;letter-spacing:2px;text-transform:uppercase;display:none">
-    Legacy iPad Mode
+  <div class="topbar">
+    <div class="topbar-title">Integrity Update</div>
+    <div class="topbar-tabs">
+      <button class="tab-btn active" data-tab="new"      onclick="switchTab('new')">New Entry</button>
+      <button class="tab-btn" data-tab="edit"            onclick="switchTab('edit')">Edit</button>
+      <button class="tab-btn" data-tab="targets"         onclick="switchTab('targets')">Targets</button>
+      <button class="tab-btn" data-tab="focus"           onclick="switchTab('focus')">Focus</button>
+      <button class="tab-btn" data-tab="activities"      onclick="switchTab('activities')">Activities</button>
+      <button class="tab-btn" data-tab="history"         onclick="switchTab('history')">History</button>
+      <button class="tab-btn" data-tab="settings"        onclick="switchTab('settings')">Settings</button>
+    </div>
   </div>
-  <div id="leg-loading" style="padding:20px;color:#666;font-family:Arial,sans-serif;font-size:14px">Loading board...</div>
-  <div id="leg-error-msg" class="leg-error" style="display:none">
-    Legacy display mode could not load. Please refresh or try another device.
+
+  <div class="github-bar">
+    <span class="github-bar-note">Must be logged into GitHub to use direct editor link</span>
+    <div style="display:flex;align-items:center;gap:10px">
+      <span class="api-status" id="api-status-indicator">API: token not set</span>
+      <a href="https://github.com/SWADDSHOME/trusted-independence/edit/main/index.html" target="_blank">Open Board Editor </a>
+    </div>
   </div>
-  <div id="leg-content">
-    <div class="leg-section">
-      <div class="leg-title">Current Position</div>
-      <div class="leg-status" id="leg-status">Loading...</div>
-      <div class="leg-msg" id="leg-msg"></div>
-      <div style="margin-top:8px">
-        Trust Score: <span class="leg-score" id="leg-score">-</span>
+
+  <div class="page">
+    <!-- Legacy/manual mode notice -->
+    <div id="legacy-notice" style="display:none;background:#2a1a08;border:1px solid #4a3010;border-radius:3px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:#d4872a;">
+      <strong style="display:block;font-size:10px;letter-spacing:3px;text-transform:uppercase;margin-bottom:4px">Manual Mode Active</strong>
+      Auto-commit is not available on this device. Use the Copy button and paste into GitHub manually.
+    </div>
+
+
+
+    <!-- == NEW ENTRY == -->
+    <div class="panel active" id="panel-new">
+
+      <div class="card">
+        <div class="section-label">Quick Actions</div>
+        <div class="qa-label">Positive</div>
+        <div class="qa-grid" id="qa-positive"></div>
+        <div class="qa-label">Negative</div>
+        <div class="qa-grid" id="qa-negative"></div>
       </div>
-    </div>
 
-    <div class="leg-section">
-      <div class="leg-title">Freedom Status</div>
-      <div id="leg-freedoms"></div>
-    </div>
+      <div class="card">
+        <div class="section-label">Full Entry Form</div>
+        <div id="val-notice" class="val-notice"></div>
 
-    <div class="leg-section" id="leg-susp-section" style="display:none">
-      <div class="leg-title">Active Suspensions</div>
-      <div id="leg-suspensions"></div>
-    </div>
-
-    <div class="leg-section">
-      <div class="leg-title">Next Unlock</div>
-      <div id="leg-unlock" style="font-size:14px;color:#aaa"></div>
-    </div>
-
-    <div class="leg-section">
-      <div class="leg-title">This Week's Focus</div>
-      <div id="leg-focus" style="font-size:13px;color:#aaa;font-style:italic"></div>
-    </div>
-
-    <div class="leg-section">
-      <div class="leg-title">Recent Wins</div>
-      <div id="leg-wins"></div>
-    </div>
-
-    <div class="leg-section">
-      <div class="leg-title">Recent Setbacks</div>
-      <div id="leg-setbacks"></div>
-    </div>
-
-    <div class="leg-section">
-      <div class="leg-title">Trust Log</div>
-      <table class="leg-table">
-        <thead><tr><th>Date</th><th>Event</th><th>Points</th></tr></thead>
-        <tbody id="leg-log"></tbody>
-      </table>
-    </div>
-
-    <div class="leg-section">
-      <div class="leg-title">Targets</div>
-      <div id="leg-targets"></div>
-    </div>
-  </div>
-
-  <div class="leg-debug" id="leg-debug"></div>
-</div>
-
-<div class="page" id="page-root" style="display:none">
-
-  <!-- 1 POSITION BANNER - all views -->
-  <div class="position-banner an d1" id="position-banner">
-    <div class="position-icon" id="pos-icon">o</div>
-    <div>
-      <div class="position-label">Current Position</div>
-      <div class="position-status" id="pos-status"></div>
-      <div class="position-message" id="pos-message"></div>
-      <div class="score-track"><div class="score-fill" id="score-fill"></div></div>
-    </div>
-    <div class="position-score-block">
-      <div class="score-ring" id="score-ring">
-        <div class="score-num" id="score-num"></div>
-        <div class="score-label">TRUST</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- 
-       OVERVIEW VIEW
-       1 Position
-       8 Targets
-       3 Flat Freedom Grid
-       4+5 Next Unlock + Active Suspensions
-       pending Requests Strip
-       10 Goal
-   -->
-  <div class="view-overview">
-
-    <!-- 8 TARGETS -->
-    <div class="an d2">
-      <div class="section-label">Targets</div>
-      <div class="targets-grid gap" id="ov-targets-grid"></div>
-    </div>
-
-    <!-- 3 FLAT FREEDOM GRID -->
-    <div class="an d2">
-      <div class="section-label">Freedom Status</div>
-      <div class="freedom-grid gap" id="ov-freedom-grid"></div>
-    </div>
-
-    <!-- 4+5 NEXT UNLOCK + ACTIVE SUSPENSIONS -->
-    <div class="two-col an d3">
-      <div>
-        <div class="section-label">Next Unlock</div>
-        <div class="unlock-card gap" id="ov-unlock-card">
-          <div class="unlock-header">
-            <span class="unlock-arrow">-></span>
-            <span class="unlock-target" id="ov-unlock-target"></span>
+        <div class="form-row">
+          <label>Entry Type</label>
+          <div class="type-selector">
+            <div class="type-opt sel-event" data-type="event"   onclick="selectType('event')">Trust Event</div>
+            <div class="type-opt"           data-type="request" onclick="selectType('request')">Request</div>
+            <div class="type-opt"           data-type="diary"   onclick="selectType('diary')">Diary Note</div>
           </div>
-          <div class="unlock-meta" id="ov-unlock-meta"></div>
-          <ul class="unlock-behaviours" id="ov-unlock-behaviours"></ul>
+        </div>
+
+        <div class="two-col-form">
+          <div class="form-row">
+            <label>Date</label>
+            <input type="date" id="f-date">
+          </div>
+          <div class="form-row">
+            <label>Added By</label>
+            <select id="f-addedby"><option value="Dad">Dad</option><option value="Mum">Mum</option></select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <label>Description</label>
+          <input type="text" id="f-event" placeholder="Brief, factual description" oninput="validateForm()">
+        </div>
+
+        <div class="form-row">
+          <label>Category</label>
+          <select id="f-category">
+            <option value="Honesty">Honesty</option>
+            <option value="Reliability">Reliability</option>
+            <option value="School">School</option>
+            <option value="Communication">Communication</option>
+            <option value="Character">Character</option>
+            <option value="Request">Request</option>
+            <option value="General">General</option>
+          </select>
+        </div>
+
+        <div class="form-row" id="pts-section">
+          <label>Points</label>
+          <div style="margin-bottom:6px;font-size:11px;color:var(--text-dim)">Positive</div>
+          <div class="pts-selector">
+            <div class="pts-opt" data-val="3"  onclick="selectPts(3)">+3</div>
+            <div class="pts-opt" data-val="6"  onclick="selectPts(6)">+6</div>
+            <div class="pts-opt" data-val="9"  onclick="selectPts(9)">+9</div>
+            <div class="pts-opt" data-val="12" onclick="selectPts(12)">+12</div>
+            <div class="pts-opt" data-val="15" onclick="selectPts(15)">+15</div>
+          </div>
+          <div style="margin-top:8px;margin-bottom:6px;font-size:11px;color:var(--text-dim)">Negative</div>
+          <div class="pts-selector">
+            <div class="pts-opt" data-val="-3"  onclick="selectPts(-3)">3</div>
+            <div class="pts-opt" data-val="-6"  onclick="selectPts(-6)">6</div>
+            <div class="pts-opt" data-val="-9"  onclick="selectPts(-9)">9</div>
+            <div class="pts-opt" data-val="-12" onclick="selectPts(-12)">12</div>
+            <div class="pts-opt" data-val="-15" onclick="selectPts(-15)">15</div>
+          </div>
+          <div id="pts-display" style="margin-top:8px;font-family:var(--mono);font-size:13px;color:var(--text-dim)">No points selected</div>
+        </div>
+
+        <div class="form-row">
+          <label>Visible on Board?</label>
+          <div class="toggle-row" style="margin-top:8px">
+            <label class="toggle"><input type="checkbox" id="f-visible" checked><span class="toggle-slider"></span></label>
+            <span class="toggle-label" id="visible-label">Yes - shown in trust log</span>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <label>Private Notes</label>
+          <textarea id="f-notes" placeholder="Optional context for parents only"></textarea>
+        </div>
+
+        <!-- REQUEST BLOCK -->
+        <div class="request-block" id="request-block">
+          <div class="section-label" style="color:var(--gold-dim);border-color:var(--gold-dim)">Request Details</div>
+          <div class="two-col-form">
+            <div class="form-row"><label>Event Date</label><input type="date" id="f-req-date"></div>
+            <div class="form-row">
+              <label>Status</label>
+              <select id="f-req-status">
+                <option value="pending">Pending</option>
+                <option value="approved">Approved</option>
+                <option value="declined">Declined</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row"><label>Details</label><input type="text" id="f-req-details" placeholder="Where, who, what time, supervision etc"></div>
+        </div>
+
+        <!-- SUSPENSION -->
+        <div class="form-row" id="susp-toggle-row">
+          <label>Add Suspension?</label>
+          <div class="toggle-row" style="margin-top:8px">
+            <label class="toggle"><input type="checkbox" id="f-susp-toggle" onchange="toggleSuspend()" checked="false"><span class="toggle-slider"></span></label>
+            <span class="toggle-label">Lock a specific freedom for a set period</span>
+          </div>
+        </div>
+
+        <div class="suspend-block" id="suspend-block">
+          <div class="section-label" style="color:#884;border-color:#884">Suspension Details</div>
+          <div class="form-row">
+            <label>Freedom to Suspend</label>
+            <select id="f-susp-freedom">
+              <option value="Evening">Evening</option>
+              <option value="Local Daytime">Local Daytime</option>
+              <option value="Wider Travel">Wider Travel</option>
+              <option value="Parties">Parties</option>
+              <option value="Sleepovers">Sleepovers</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label>Duration</label>
+            <div class="days-selector">
+              <div class="days-opt" data-days="3"  onclick="selectDays(3)">3d</div>
+              <div class="days-opt" data-days="6"  onclick="selectDays(6)">6d</div>
+              <div class="days-opt" data-days="9"  onclick="selectDays(9)">9d</div>
+              <div class="days-opt" data-days="12" onclick="selectDays(12)">12d</div>
+              <div class="days-opt" data-days="15" onclick="selectDays(15)">15d</div>
+              <div class="days-opt" data-days="21" onclick="selectDays(21)">21d</div>
+            </div>
+            <div class="hint" style="color:#884;margin-top:6px">Honesty: 15d  Reliability: 6d  School: 9d  Boundary: 12d  Serious: 21d</div>
+          </div>
+          <div class="form-row"><label>Reason (shown on board)</label><input type="text" id="f-susp-reason" placeholder="e.g. Suspended following vaping incident"></div>
+          <div class="two-col-form">
+            <div class="form-row"><label>Score Floor</label><input type="number" id="f-susp-floor" placeholder="e.g. 40" min="0" max="100"><div class="hint">Optional - prevents score recovering this freedom</div></div>
+            <div class="form-row"><label>Early Lift Date</label><input type="date" id="f-susp-earlylift"><div class="hint">Only if ending early</div></div>
+          </div>
+        </div>
+
+        <button class="submit-btn" onclick="generateEntry()">Generate Entry</button>
+      </div>
+
+      <!-- OUTPUT + API COMMIT -->
+      <div class="output-section" id="output-section">
+        <div class="section-label">Generated Entry</div>
+        <div class="output-box"><pre class="output-code" id="output-code"></pre></div>
+        <button class="copy-btn" onclick="copyTo('output-code','copy-confirm')">Copy to Clipboard</button>
+        <div class="copy-confirm" id="copy-confirm"></div>
+        <button class="api-commit-btn" id="api-commit-btn" onclick="apiCommitNew()"> Commit to Board Automatically</button>
+        <div class="api-result" id="api-result-new"></div>
+        <details class="manual-fallback">
+          <summary>Manual paste instructions (fallback)</summary>
+          <ol>
+            <li>Must be logged into GitHub  <a href="https://github.com/SWADDSHOME/trusted-independence/edit/main/index.html" target="_blank" style="color:var(--gold)">Open editor directly </a></li>
+            <li>Find <span class="url">eventLog: [</span></li>
+            <li>Click after the <strong>[</strong>, press Enter, paste</li>
+            <li>Scroll down -> <strong>Commit changes</strong></li>
+            <li>Wait 60s -> <strong>Ctrl+Shift+R</strong></li>
+          </ol>
+        </details>
+      </div>
+
+    </div><!-- /panel-new -->
+
+    <!-- == EDIT EXISTING (BL-17) == -->
+    <div class="panel" id="panel-edit">
+      <div class="card">
+        <div class="section-label">Edit Existing Entry</div>
+        <p style="font-size:13px;color:var(--text-mid);margin-bottom:16px;line-height:1.6">Paste your current eventLog to load entries. Click an entry to edit its request status or suspension early lift date.</p>
+        <textarea id="edit-paste" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:3px;padding:10px;color:var(--text);font-family:var(--mono);font-size:11px;height:80px;resize:vertical;outline:none;margin-bottom:8px;" placeholder="Paste eventLog array contents here..."></textarea>
+        <button class="add-btn" onclick="loadEditEntries()">Load Entries</button>
+      </div>
+
+      <div id="edit-entries-list"></div>
+
+      <div class="output-section" id="edit-output-section">
+        <div class="section-label">Updated Entry - Replaces Existing</div>
+        <div class="output-box"><pre class="output-code" id="edit-output-code"></pre></div>
+        <button class="copy-btn" onclick="copyTo('edit-output-code','edit-copy-confirm')">Copy to Clipboard</button>
+        <div class="copy-confirm" id="edit-copy-confirm"></div>
+        <button class="api-commit-btn" id="api-edit-commit-btn" onclick="apiCommitEdit()"> Commit Edit to Board Automatically</button>
+        <div class="api-result" id="api-result-edit"></div>
+        <details class="manual-fallback">
+          <summary>Manual paste instructions (fallback)</summary>
+          <ol>
+            <li>Must be logged into GitHub  <a href="https://github.com/SWADDSHOME/trusted-independence/edit/main/index.html" target="_blank" style="color:var(--gold)">Open editor directly </a></li>
+            <li>Find the original entry by date and event text</li>
+            <li>Replace the entire entry block with the copied block</li>
+            <li>Commit changes</li>
+          </ol>
+        </details>
+      </div>
+    </div><!-- /panel-edit -->
+
+    <!-- == TARGETS == -->
+    <div class="panel" id="panel-targets">
+      <div class="card">
+        <div class="section-label">Targets</div>
+        <div class="target-list" id="target-list"></div>
+        <div class="add-row"><input class="add-input" type="text" id="new-target-input" placeholder="New target..."><button class="add-btn" onclick="addTarget()">Add</button></div>
+        <button class="action-btn" onclick="generateAndCommit('targets')">Generate &amp; Commit</button>
+      </div>
+      <div class="output-section" id="target-output-section">
+        <div class="section-label">Generated Targets Config</div>
+        <div class="output-box"><pre class="output-code" id="target-output-code"></pre></div>
+        <button class="copy-btn" onclick="copyTo('target-output-code','target-copy-confirm')">Copy</button>
+        <div class="copy-confirm" id="target-copy-confirm"></div>
+        <div class="api-result" id="api-result-targets"></div>
+        <details class="manual-fallback"><summary>Manual instructions</summary><ol><li>Must be logged in  <a href="https://github.com/SWADDSHOME/trusted-independence/edit/main/index.html" target="_blank" style="color:var(--gold)">Open editor </a></li><li>Find <span class="url">targets: [</span> in CONFIG</li><li>Replace entire targets block with copied block</li><li>Commit</li></ol></details>
+      </div>
+    </div>
+
+    <!-- == FOCUS == -->
+    <div class="panel" id="panel-focus">
+      <div class="card">
+        <div class="section-label">This Week's Focus</div>
+        <textarea class="focus-edit" id="focus-edit"></textarea>
+        <button class="action-btn" onclick="generateAndCommit('focus')">Generate &amp; Commit</button>
+      </div>
+      <div class="output-section" id="focus-output-section">
+        <div class="section-label">Generated Focus Config</div>
+        <div class="output-box"><pre class="output-code" id="focus-output-code"></pre></div>
+        <button class="copy-btn" onclick="copyTo('focus-output-code','focus-copy-confirm')">Copy</button>
+        <div class="copy-confirm" id="focus-copy-confirm"></div>
+        <div class="api-result" id="api-result-focus"></div>
+        <details class="manual-fallback"><summary>Manual instructions</summary><ol><li>Must be logged in  <a href="https://github.com/SWADDSHOME/trusted-independence/edit/main/index.html" target="_blank" style="color:var(--gold)">Open editor </a></li><li>Find <span class="url">currentFocus:</span> in CONFIG</li><li>Replace the entire line with copied line</li><li>Commit</li></ol></details>
+      </div>
+    </div>
+
+    <!-- == ACTIVITIES == -->
+    <div class="panel" id="panel-activities">
+      <div class="card">
+        <div class="section-label">Important Activities</div>
+        <div class="activity-list" id="activity-list"></div>
+        <div class="add-row"><input class="add-input" type="text" id="new-activity-input" placeholder="New activity..."><button class="add-btn" onclick="addActivity()">Add</button></div>
+        <button class="action-btn" onclick="generateAndCommit('activities')">Generate &amp; Commit</button>
+      </div>
+      <div class="output-section" id="activities-output-section">
+        <div class="section-label">Generated Activities Config</div>
+        <div class="output-box"><pre class="output-code" id="activities-output-code"></pre></div>
+        <button class="copy-btn" onclick="copyTo('activities-output-code','activities-copy-confirm')">Copy</button>
+        <div class="copy-confirm" id="activities-copy-confirm"></div>
+        <div class="api-result" id="api-result-activities"></div>
+        <details class="manual-fallback"><summary>Manual instructions</summary><ol><li>Must be logged in  <a href="https://github.com/SWADDSHOME/trusted-independence/edit/main/index.html" target="_blank" style="color:var(--gold)">Open editor </a></li><li>Find <span class="url">highCostActivities: [</span> in CONFIG</li><li>Replace entire block with copied block</li><li>Commit</li></ol></details>
+      </div>
+    </div>
+
+    <!-- == HISTORY == -->
+    <div class="panel" id="panel-history">
+      <div class="card">
+        <div class="section-label">Event History</div>
+        <textarea id="history-paste" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:3px;padding:10px;color:var(--text);font-family:var(--mono);font-size:11px;height:80px;resize:vertical;outline:none;margin-bottom:8px;" placeholder="Paste eventLog array contents..."></textarea>
+        <button class="add-btn" onclick="loadHistory()">Load</button>
+        <div id="history-table-wrap" style="margin-top:16px;display:none">
+          <table class="history-table">
+            <thead><tr><th class="h-date">Date</th><th>Event</th><th>By</th><th>Points</th></tr></thead>
+            <tbody id="history-tbody"></tbody>
+          </table>
         </div>
       </div>
-      <div id="ov-susp-col">
-        <div id="ov-suspensions-section" style="display:none">
-          <div class="section-label">Active Suspensions</div>
-          <div class="suspensions-panel gap" id="ov-suspensions-panel"></div>
+    </div>
+
+    <!-- == SETTINGS == -->
+    <div class="panel" id="panel-settings">
+      <div class="card">
+        <div class="section-label">GitHub API Token (BL-19)</div>
+        <div class="settings-note">Your Personal Access Token allows this form to commit changes directly to the board - no copy-paste needed. The token is stored only in this browser session and never sent anywhere except GitHub's API.<br><br>To create one: GitHub -> Profile -> Settings -> Developer settings -> Personal access tokens -> Tokens (classic) -> Generate new token -> tick <strong>repo</strong> scope.</div>
+        <div class="settings-field">
+          <label>Personal Access Token</label>
+          <input type="password" id="settings-token" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" oninput="saveToken()">
         </div>
+        <div id="token-status" style="font-family:var(--mono);font-size:11px;color:var(--text-dim);margin-top:4px"></div>
       </div>
     </div>
 
-    <!-- pending REQUESTS STRIP -->
-    <div class="an d4" id="ov-requests-section" style="display:none">
-      <div class="section-label">On The Radar</div>
-      <div class="requests-strip" id="ov-requests-list"></div>
-    </div>
-
-    <!-- 10 GOAL -->
-    <div class="goal-banner an d5">
-      <div class="goal-text">
-        <strong>"Our goal is not obedience.</strong><br>
-        Our goal is to help build a trustworthy, independent young man<br>
-        who can make good decisions <strong>when nobody is watching."</strong>
-      </div>
-    </div>
-
-  </div><!-- /view-overview -->
-
-  <!-- 
-       DETAIL VIEW
-       1 Position
-       3 Carousel
-       12 Full Trust Log
-       5 Wins (left) / Setbacks (right)
-       5 Active Suspensions
-       4 Next Unlock
-       9 Important Activities
-       7 This Week's Focus
-       2 Board Context
-   -->
-  <div class="view-detail">
-
-    <!-- 3 CAROUSEL -->
-    <div class="carousel-section an d2">
-      <div class="section-label">Freedom Status</div>
-      <div class="carousel-wrap" id="carousel-wrap">
-        <button class="carousel-arrow left"  onclick="carouselMove(-1)"><</button>
-        <div class="carousel-track" id="carousel-track"></div>
-        <button class="carousel-arrow right" onclick="carouselMove(1)">></button>
-      </div>
-      <div class="carousel-dots" id="carousel-dots"></div>
-    </div>
-
-    <!-- 12 FULL TRUST LOG -->
-    <div class="an d3">
-      <div class="section-label">Full Trust Log</div>
-      <div class="card gap">
-        <table class="log-table">
-          <thead>
-            <tr>
-              <th class="tl-date">Date</th>
-              <th>Event</th>
-              <th class="tl-cat">Category</th>
-              <th class="tl-by">By</th>
-              <th class="tl-pts">Points</th>
-              <th class="tl-dir">^v</th>
-            </tr>
-          </thead>
-          <tbody id="dt-log-body"></tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- 5 WINS (left) + SETBACKS (right) -->
-    <div class="two-col an d4">
-      <div>
-        <div class="section-label">Recent Wins</div>
-        <div class="wins-card gap" id="dt-wins-list"></div>
-      </div>
-      <div>
-        <div class="section-label">Recent Setbacks</div>
-        <div class="setbacks-card gap" id="dt-setbacks-list"></div>
-      </div>
-    </div>
-
-    <!-- 5 ACTIVE SUSPENSIONS -->
-    <div id="dt-suspensions-section" style="display:none" class="an d4">
-      <div class="section-label">Active Suspensions</div>
-      <div class="suspensions-panel gap" id="dt-suspensions-panel"></div>
-    </div>
-
-    <!-- 4 NEXT UNLOCK -->
-    <div class="an d4">
-      <div class="section-label">Next Unlock</div>
-      <div class="unlock-card gap" id="dt-unlock-card">
-        <div class="unlock-header">
-          <span class="unlock-arrow">-></span>
-          <span class="unlock-target" id="dt-unlock-target"></span>
-        </div>
-        <div class="unlock-meta" id="dt-unlock-meta"></div>
-        <ul class="unlock-behaviours" id="dt-unlock-behaviours"></ul>
-      </div>
-    </div>
-
-    <!-- 9 IMPORTANT ACTIVITIES -->
-    <div class="an d5">
-      <div class="section-label">Important Activities</div>
-      <div class="hca-grid gap" id="dt-hca-grid"></div>
-    </div>
-
-    <!-- 7 THIS WEEK'S FOCUS -->
-    <div class="an d5">
-      <div class="section-label">This Week's Focus</div>
-      <div class="focus-card gap"><div class="focus-text" id="dt-focus-text"></div></div>
-    </div>
-
-    <!-- 10 GOAL -->
-    <div class="goal-banner an d5">
-      <div class="goal-text">
-        <strong>"Our goal is not obedience.</strong><br>
-        Our goal is to help build a trustworthy, independent young man<br>
-        who can make good decisions <strong>when nobody is watching."</strong>
-      </div>
-    </div>
-
-    <!-- 2 BOARD CONTEXT -->
-    <div class="board-context an d6">
-      <strong>Board Context</strong>
-      <span id="dt-board-context"></span>
-    </div>
-
-  </div><!-- /view-detail -->
-
-  <!-- 
-       CUSTOM VIEW - zone layout engine
-   -->
-  <div class="view-custom">
-    <div class="cv-toolbar">
-      <div class="cv-toolbar-left">
-        Custom Layout
-        <span class="cv-save-status" id="cv-save-status"></span>
-      </div>
-      <div class="cv-toolbar-right">
-        <button class="cv-add-btn" onclick="addZone('full')">+ Full Width</button>
-        <button class="cv-add-btn" onclick="addZone('two-col')">+ Two Column</button>
-        <button class="cv-reset-btn" onclick="resetLayout()">Reset</button>
-      </div>
-    </div>
-    <div class="cv-pool-wrap" id="cv-pool-wrap">
-      <div class="cv-pool-label">Unassigned - drag into a zone</div>
-      <div class="cv-pool" id="cv-pool"></div>
-    </div>
-    <div id="cv-zones"></div>
-  </div><!-- /view-custom -->
-
-  <div class="footer" id="footer"></div>
-</div><!-- /page -->
+  </div><!-- /page -->
+</div><!-- /main-screen -->
 
 <script>
-/* - helpers - */
-function el(id){return document.getElementById(id);}
-function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
-function parseDate(iso){const[y,m,d]=iso.split('-').map(Number);return new Date(y,m-1,d);}
-function fmt(iso){
-  if(!iso)return '';
-  const mn=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  const[y,m,d]=iso.split('-').map(Number);return d+' '+mn[m-1]+' '+y;
-}
-function fmtDT(iso){
-  if(!iso)return '';
-  const d=new Date(iso);
-  return d.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})+' '+d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
-}
-function daysBetween(a,b){return Math.round((b-a)/86400000);}
-function addDays(date,days){const d=new Date(date);d.setDate(d.getDate()+days);return d;}
-function isoFromDate(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+/* ==================================================================
+   PASSWORD
+================================================================== */
+const PASSWORD = "Integrity2006";
 
-/* - bands - */
-const BANDS=[
-  {min:0,  max:20,  label:"SUSPENDED",       icon:"x",color:"var(--suspended)", msgFn:n=>`${n}'s trust account is currently suspended. Demonstrating genuine change is the only route forward.`},
-  {min:21, max:40,  label:"RESTRICTED",       icon:"o",color:"var(--rebuilding)",msgFn:n=>`${n} is in a restricted position. Trust needs to be rebuilt through consistent, honest behaviour.`},
-  {min:41, max:60,  label:"REBUILDING TRUST", icon:"*",color:"var(--rebuilding)",msgFn:n=>`${n} is actively rebuilding trust. Consistent choices over time are what move this forward.`},
-  {min:61, max:80,  label:"MAKING PROGRESS",  icon:"*",color:"var(--gold)",      msgFn:n=>`${n} is making genuine progress. Keep building - the next freedoms are within reach.`},
-  {min:81, max:100, label:"STRONG TRUST",     icon:"*",color:"var(--granted)",   msgFn:n=>`${n} has strong trust right now. This reflects consistently good choices. Keep it going.`}
-];
+/* ==================================================================
+   GITHUB CONFIG (BL-19)
+================================================================== */
+const GITHUB_OWNER = "SWADDSHOME";
+const GITHUB_REPO  = "trusted-independence";
+const GITHUB_FILE  = "index.html";
+const GITHUB_BRANCH= "main";
 
-/* - auto rules - */
-const AUTO_RULES={
-  "Local Daytime":[
-    {max:20,status:"LOCKED",    note:"Not currently available"},
-    {max:40,status:"LIMITED",   note:"Local area only, back by agreed time"},
-    {max:999,status:"GRANTED",  note:"Out locally, back by agreed time"}
+/* ==================================================================
+   QUICK ACTIONS - BL-18 (Vaughan's real list)
+================================================================== */
+const QUICK_ACTIONS = {
+  positive: [
+    {label:"Helped around the house without being asked",  category:"Character",  points:6,  suspend:null},
+    {label:"Offered to do something beyond the usual",     category:"Character",  points:6,  suspend:null},
+    {label:"Cooked dinner - planned and bought ingredients",category:"Character", points:9,  suspend:null},
+    {label:"Homework done when set, without chasing",      category:"School",     points:6,  suspend:null},
+    {label:"Reading independently",                        category:"Character",  points:3,  suspend:null},
+    {label:"Walked Jeff without being asked",              category:"Character",  points:3,  suspend:null},
+    {label:"Ready for football without being chased",      category:"Reliability",points:3,  suspend:null},
+    {label:"Honest conversation - told us before we found out", category:"Honesty",points:9, suspend:null},
+    {label:"Home on time, no reminder needed",             category:"Reliability",points:3,  suspend:null},
+    {label:"Good week at school - no incidents",           category:"School",     points:6,  suspend:null}
   ],
-  "Evening":[
-    {max:40,status:"LOCKED",    note:"Not currently available"},
-    {max:60,status:"REBUILDING",note:"Back by 9pm. Location shared."},
-    {max:80,status:"LIMITED",   note:"Agreed times. Location shared."},
-    {max:999,status:"GRANTED",  note:"Standard agreement applies"}
-  ],
-  "Wider Travel":[
-    {max:50,status:"LOCKED",    note:"Not currently available"},
-    {max:70,status:"REBUILDING",note:"Prior agreement required"},
-    {max:85,status:"LIMITED",   note:"With prior agreement"},
-    {max:999,status:"GRANTED",  note:"Subject to standard check-in"}
-  ],
-  "Parties":[
-    {max:70,status:"LOCKED",    note:"Not currently available"},
-    {max:85,status:"REBUILDING",note:"Being considered"},
-    {max:95,status:"LIMITED",   note:"With prior parent approval"},
-    {max:999,status:"GRANTED",  note:"Subject to parent approval"}
-  ],
-  "Sleepovers":[
-    {max:80,status:"LOCKED",    note:"Not currently available"},
-    {max:90,status:"REBUILDING",note:"Being considered"},
-    {max:97,status:"LIMITED",   note:"With prior parent approval"},
-    {max:999,status:"GRANTED",  note:"Subject to parent approval"}
+  negative: [
+    {label:"Drinking without parental consent",            category:"Honesty",    points:-12, suspend:{freedom:"Evening",days:15,reason:"Suspended - drinking without consent",scoreFloor:null}},
+    {label:"Smoking",                                      category:"Honesty",    points:-9,  suspend:{freedom:"Evening",days:12,reason:"Suspended - smoking",scoreFloor:null}},
+    {label:"Vaping - found or admitted",                   category:"Honesty",    points:-9,  suspend:{freedom:"Evening",days:15,reason:"Suspended following vaping incident",scoreFloor:40}},
+    {label:"Drug use",                                     category:"Honesty",    points:-15, suspend:{freedom:"Evening",days:21,reason:"Suspended - drug use",scoreFloor:35}},
+    {label:"Missed curfew - no contact",                   category:"Reliability",points:-6,  suspend:{freedom:"Evening",days:6,reason:"Curfew breach - no contact",scoreFloor:null}},
+    {label:"Homework not done",                            category:"School",     points:-3,  suspend:null},
+    {label:"Detention",                                    category:"School",     points:-6,  suspend:{freedom:"Wider Travel",days:9,reason:"Restricted following detention",scoreFloor:null}},
+    {label:"Unproductive day - screens all day",           category:"General",    points:0,   suspend:null}
   ]
 };
 
-const STATUS_RANK   ={GRANTED:5,LIMITED:4,REBUILDING:3,LOCKED:2,SUSPENDED:1};
-const FREEDOM_ORDER =["Local Daytime","Evening","Wider Travel","Parties","Sleepovers"];
+/* ==================================================================
+   BOARD DATA (mirrors index.html CONFIG - keep in sync)
+================================================================== */
+const BOARD_TARGETS = [
+  {label:"No Detentions",                                        achieved:false},
+  {label:"On Time to School",                                    achieved:false},
+  {label:"Merit Award",                                          achieved:false},
+  {label:"Positive / Great School Report",                       achieved:false},
+  {label:"Positive feedback from a teacher or trusted adult",    achieved:false}
+];
+const BOARD_ACTIVITIES = [
+  {label:"Sunday Football Team",   active:true, suspendReason:""},
+  {label:"Saturday Football Team", active:true, suspendReason:""},
+  {label:"Work Experience",        active:true, suspendReason:""},
+  {label:"Job",                    active:true, suspendReason:""},
+  {label:"Dog Walking",            active:true, suspendReason:""}
+];
+const BOARD_FOCUS = "Add this week's focus via the Integrity Update form.";
 
-/* - suspension engine - */
-function calcSuspensions(eventLog,today){
-  const m={};
-  eventLog.forEach(ev=>{
-    if(!ev.suspend)return;
-    const s=ev.suspend; if(!s.freedom)return;
-    const start=parseDate(ev.date);
-    const nomEnd=addDays(start,s.days||14);
-    const liftD=s.earlyLiftDate?(parseDate(s.earlyLiftDate)<nomEnd?parseDate(s.earlyLiftDate):nomEnd):nomEnd;
-    const daysRem=daysBetween(today,liftD);
-    const total=Math.max(1,daysBetween(start,liftD));
-    const pct=Math.max(0,Math.min(100,((total-daysRem)/total)*100));
-    if(daysRem>0){
-      if(!m[s.freedom]||daysRem>m[s.freedom].daysRemaining){
-        m[s.freedom]={active:true,daysRemaining:daysRem,liftDate:isoFromDate(liftD),
-          imposedDate:s.imposedDate||ev.date,imposedBy:s.imposedBy||ev.addedBy||'',
-          originalEndDate:s.originalEndDate||isoFromDate(nomEnd),
-          earlyLift:!!s.earlyLiftDate,earlyLiftDate:s.earlyLiftDate||null,
-          reason:s.reason||'Suspended',scoreFloor:s.scoreFloor||null,pct};
-      }
-    }
-  });
-  return m;
+/* ==================================================================
+   STATE
+================================================================== */
+let selectedPoints=null, selectedDays=null, selectedType='event';
+let targetStates=[], activityStates=[];
+let editEntries=[], selectedEditIdx=null;
+let pendingNewBlock='', pendingEditBlock='', pendingEditOriginal='';
+let githubToken='';
+
+/* ==================================================================
+   HELPERS
+================================================================== */
+function el(id){return document.getElementById(id);}
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+function fmt(iso){if(!iso)return '';const mn=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];const[y,m,d]=iso.split('-').map(Number);return d+' '+mn[m-1]+' '+y;}
+
+/* ==================================================================
+   AUTH
+================================================================== */
+function copyHint(){
+  navigator.clipboard.writeText('Integrity').catch(()=>{});
+  const btn=el('hint-copy-btn');
+  btn.textContent='Copied ok'; btn.classList.add('copied');
+  setTimeout(()=>{btn.textContent='Copy';btn.classList.remove('copied');},2000);
 }
 
-/* - cascade - */
-function applyCascade(raw){
-  let block=false; const r={};
-  FREEDOM_ORDER.forEach(n=>{
-    if(block){r[n]='LOCKED';}
-    else{r[n]=raw[n]; if(raw[n]==='SUSPENDED')block=true;}
-  });
-  return r;
-}
-
-/* - raw status - */
-function getRawStatus(name,score,suspMap,C){
-  const override=C.freedomOverrides&&C.freedomOverrides[name];
-  const susp=suspMap[name];
-  if(susp&&susp.active&&!(override&&override.overrideStatus))return 'SUSPENDED';
-  if(override&&override.overrideStatus)return override.overrideStatus;
-  let eff=score;
-  if(susp&&susp.scoreFloor!==null)eff=Math.min(score,susp.scoreFloor);
-  const rules=AUTO_RULES[name]||[];
-  const rule=rules.find(r=>eff<=r.max)||rules[rules.length-1];
-  return rule?rule.status:'LOCKED';
-}
-
-/* - next unlock - */
-function calcNextUnlock(score,freedomStatuses,suspMap){
-  let target=null,rank=99;
-  for(const n of FREEDOM_ORDER){
-    const s=freedomStatuses[n];
-    const isSusp=suspMap[n]&&suspMap[n].active;
-    if(s!=='GRANTED'&&!isSusp){const r=STATUS_RANK[s]||0; if(r<rank){rank=r;target=n;}}
+function checkAuth(){
+  if(el('auth-input').value===PASSWORD){
+    el('auth-screen').style.display='none';
+    el('main-screen').style.display='block';
+    init();
+  }else{
+    el('auth-error').textContent='Incorrect password.';
+    el('auth-input').value='';
   }
-  if(!target){
-    const active=Object.entries(suspMap).filter(([,v])=>v.active);
-    if(active.length){
-      active.sort((a,b)=>a[1].daysRemaining-b[1].daysRemaining);
-      const[n,su]=active[0];
-      return{name:n,currentStatus:freedomStatuses[n],suspended:true,daysRemaining:su.daysRemaining,suspendedOnly:true,nextScore:null,nextStatus:null};
-    }
-    return null;
-  }
-  const rules=AUTO_RULES[target]||[];
-  let nextScore=null,nextStatus=null;
-  for(const rule of rules){
-    if(score<=rule.max){const i=rules.indexOf(rule); if(i+1<rules.length){nextStatus=rules[i+1].status;nextScore=rule.max+1;} break;}
-  }
-  return{name:target,currentStatus:freedomStatuses[target],suspended:false,daysRemaining:0,suspendedOnly:false,nextScore,nextStatus};
 }
 
-/* - view - */
-function setView(v){
-  el('page-root').className='page show-'+v;
-  document.querySelectorAll('.view-btn').forEach(b=>b.classList.toggle('active',b.dataset.view===v));
-  try{localStorage.setItem('tfb-view',v);}catch(e){}
-  if(v==='custom'){cvLoad();renderCustomBoard();}
-}
-
-/* - render unlock - */
-function renderUnlock(tEl,mEl,lEl,score,fs,suspMap){
-  const nu=calcNextUnlock(score,fs,suspMap);
-  if(!nu||!tEl)return;
-  tEl.textContent=nu.name+(nu.suspendedOnly?' - suspension clears first':'');
-  let chips='';
-  if(nu.suspendedOnly){chips=`<span class="unlock-chip chip-suspended">Suspension running - ${nu.daysRemaining} days remaining</span>`;}
-  else{chips=`<span class="unlock-chip chip-current">Current: ${esc(nu.currentStatus)}</span>`;if(nu.nextScore)chips+=`<span class="unlock-chip chip-needed">Target: ${esc(nu.nextStatus)} (${nu.nextScore}+ points)</span>`;}
-  mEl.innerHTML=chips;
-  lEl.innerHTML='';
-  CONFIG.nextUnlockBehaviours.forEach(b=>{const li=document.createElement('li');li.className='unlock-behaviour';li.innerHTML=`<span class="ub-marker"></span><span>${esc(b)}</span>`;lEl.appendChild(li);});
-}
-
-/* - render suspensions panel - */
-function renderSuspPanel(panelId,sectionId,suspMap){
-  const active=Object.entries(suspMap).filter(([,v])=>v.active);
-  const sec=el(sectionId); if(!sec)return;
-  if(active.length){
-    sec.style.display='block';
-    el(panelId).innerHTML=active.map(([name,s])=>`
-      <div class="suspension-row">
-        <div class="susp-left"><div class="susp-freedom">${esc(name)}</div><div class="susp-days-label">DAYS LEFT</div><div class="susp-days">${s.daysRemaining}</div></div>
-        <div class="susp-detail">
-          <div class="susp-reason">${esc(s.reason)}</div>
-          <div class="susp-meta">Imposed: ${fmt(s.imposedDate)}${s.imposedBy?'  '+esc(s.imposedBy):''}</div>
-          <div class="susp-meta">Original end: ${fmt(s.originalEndDate)}</div>
-          <div class="susp-meta">Lifts: ${fmt(s.liftDate)}${s.earlyLift?`  <span style="color:var(--granted)">Early lift ${fmt(s.earlyLiftDate)}</span>`:''}</div>
-          ${s.scoreFloor!==null?`<div class="susp-meta">Score floor: ${s.scoreFloor}</div>`:''}
-        </div>
-      </div>`).join('');
-  }else{sec.style.display='none';}
-}
-
-/* - render flat freedom grid - */
-function renderFlatGrid(containerId,freedomStatuses,suspMap,rawStatuses){
-  const fg=el(containerId); if(!fg)return; fg.innerHTML='';
-  FREEDOM_ORDER.forEach((name,i)=>{
-    const status=freedomStatuses[name];
-    const susp=suspMap[name];
-    const isSusp=rawStatuses[name]==='SUSPENDED';
-    const isCascaded=status==='LOCKED'&&rawStatuses[name]!=='LOCKED'&&i>0;
-    let suspHtml='';
-    if(isSusp&&susp){
-      suspHtml=`<div class="suspension-countdown"><div class="countdown-days">${susp.daysRemaining}</div><div class="countdown-label">DAYS REMAINING</div><div class="countdown-lifts">Lifts: ${fmt(susp.liftDate)}</div><div class="susp-bar-track"><div class="susp-bar-fill" style="width:${susp.pct}%"></div></div></div>`;
-    }
-    const note=isCascaded?'Locked until preceding freedoms clear':(susp&&isSusp?susp.reason:AUTO_RULES[name]?.find(r=>r.status===status)?.note||'');
-    const d=document.createElement('div');
-    d.className=`freedom-card fc-${status}`;
-    d.innerHTML=`<div class="freedom-card-name">${esc(name)}</div><div><span class="freedom-badge">${esc(status)}</span></div><div class="freedom-note">${esc(note)}</div>${suspHtml}`;
-    fg.appendChild(d);
-  });
-}
-
-/* - carousel - */
-let carouselIndex=0, carouselData=[];
-function buildCarousel(freedomStatuses,suspMap,rawStatuses){
-  const track=el('carousel-track'); const dots=el('carousel-dots');
-  if(!track)return;
-  track.innerHTML=''; dots.innerHTML='';
-  carouselData=FREEDOM_ORDER.map(name=>({name,status:freedomStatuses[name],raw:rawStatuses[name],susp:suspMap[name]}));
-  // BL-16: start on highest GRANTED freedom, fall back to next unlock target
-  const grantedIdx = [...FREEDOM_ORDER].reverse()
-    .map(n => FREEDOM_ORDER.indexOf(n))
-    .find(i => freedomStatuses[FREEDOM_ORDER[i]] === 'GRANTED');
-  if(grantedIdx !== undefined) {
-    carouselIndex = grantedIdx;
+/* ==================================================================
+   GITHUB API (BL-19)
+================================================================== */
+function saveToken(){
+  githubToken=el('settings-token').value.trim();
+  const ts=el('token-status');
+  const ind=el('api-status-indicator');
+  if(githubToken.startsWith('ghp_')||githubToken.startsWith('github_pat_')){
+    ts.textContent='ok Token format looks correct';
+    ts.style.color='var(--granted)';
+    ind.textContent='API: token set';
+    ind.className='api-status ok';
+    // show commit buttons
+    document.querySelectorAll('.api-commit-btn').forEach(b=>b.classList.add('visible'));
+  } else if(githubToken.length>0){
+    ts.textContent=' Token format unexpected - should start with ghp_ or github_pat_';
+    ts.style.color='var(--rebuilding)';
+    ind.textContent='API: token error';
+    ind.className='api-status no';
   } else {
-    const nu=calcNextUnlock(0,freedomStatuses,suspMap);
-    carouselIndex=nu?Math.max(0,FREEDOM_ORDER.indexOf(nu.name)):0;
+    ts.textContent='';
+    ind.textContent='API: token not set';
+    ind.className='api-status no';
+    document.querySelectorAll('.api-commit-btn').forEach(b=>b.classList.remove('visible'));
   }
-  carouselData.forEach((_,i)=>{
-    const card=document.createElement('div'); card.className='c-card'; card.id='c-card-'+i; card.onclick=()=>{carouselIndex=i;updateCarousel();}; track.appendChild(card);
-    const dot=document.createElement('div');  dot.className='c-dot';  dot.onclick=()=>{carouselIndex=i;updateCarousel();}; dots.appendChild(dot);
-  });
-  updateCarousel();
 }
-function updateCarousel(){
-  const N=carouselData.length; const wrap=el('carousel-wrap'); if(!wrap)return;
-  const ww=wrap.offsetWidth||600;
-  const CW=Math.min(230,ww*0.36); // card width
-  const GAP=CW*0.62;              // spacing between card centres
-  const positions=[
-    {offset:-2,scale:0.58,opacity:0.28,zIndex:1},
-    {offset:-1,scale:0.82,opacity:0.72,zIndex:3},
-    {offset: 0,scale:1.00,opacity:1.00,zIndex:5},
-    {offset: 1,scale:0.82,opacity:0.72,zIndex:3},
-    {offset: 2,scale:0.58,opacity:0.28,zIndex:1}
-  ];
-  carouselData.forEach((d,i)=>{
-    const card=el('c-card-'+i); if(!card)return;
-    let rel=((i-carouselIndex)+N)%N; if(rel>N/2)rel-=N;
-    const pos=positions.find(p=>p.offset===rel)||{offset:rel,scale:0.25,opacity:0,zIndex:0};
-    // translateX centres the card: offset by position, then pull back by half card width
-    const tx = rel * GAP - CW/2;
-    card.style.cssText=`
-      transform: translateX(${tx}px) translateY(-50%) scale(${pos.scale});
-      opacity:${pos.opacity};
-      z-index:${pos.zIndex};
-      width:${CW}px;
-      pointer-events:${pos.opacity>0.1?'auto':'none'};
-    `;
-    const isActive=rel===0; const isNear=Math.abs(rel)===1; const isSusp=d.raw==='SUSPENDED';
-    card.className=`c-card cc-${d.status}`;
-    card.innerHTML=`
-      <div class="c-card-name" style="font-size:${isActive?16:isNear?13:10}px;color:${isActive?'var(--text)':isNear?'var(--text-mid)':'var(--text-dim)'}">${esc(d.name)}</div>
-      <span class="c-badge" style="font-size:${isActive?9:8}px">${esc(d.status)}</span>
-      ${isActive||isNear?`<div class="c-note" style="font-size:${isActive?10:9}px;color:var(--text-dim)">${esc(d.susp&&isSusp?d.susp.reason:AUTO_RULES[d.name]?.find(r=>r.status===d.status)?.note||'')}</div>`:''}
-      ${isActive&&isSusp&&d.susp?`<div class="c-countdown"><div class="c-days" style="font-size:22px">${d.susp.daysRemaining}</div><div class="c-lifts">DAYS  Lifts ${fmt(d.susp.liftDate)}</div><div class="c-bar-track"><div class="c-bar-fill" style="width:${d.susp.pct}%"></div></div></div>`:''}
-    `;
+
+async function getFileSHA(){
+  const r=await fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${GITHUB_FILE}?ref=${GITHUB_BRANCH}`,{
+    headers:{'Authorization':'token '+githubToken,'Accept':'application/vnd.github.v3+json'}
   });
-  document.querySelectorAll('.c-dot').forEach((d,i)=>d.classList.toggle('active',i===carouselIndex));
+  if(!r.ok) throw new Error('Could not fetch file: '+r.status);
+  const d=await r.json();
+  return {sha:d.sha, content:atob(d.content)};
 }
-function carouselMove(dir){carouselIndex=(carouselIndex+dir+carouselData.length)%carouselData.length;updateCarousel();}
-let touchX=0;
-document.addEventListener('touchstart',e=>{touchX=e.touches[0].clientX;},{passive:true});
-document.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-touchX;if(Math.abs(dx)>40)carouselMove(dx<0?1:-1);},{passive:true});
 
-/* - render trust log with request/diary highlighting - */
-function renderLog(tbodyId,sorted,suspMap,today){
-  const lb=el(tbodyId); if(!lb)return; lb.innerHTML='';
-  sorted.forEach(e=>{
-    const type=e.entryType||'event';
-    const isReq=type==='request';
-    const isDiary=type==='diary'||(type==='event'&&e.points===0&&!e.suspend&&!isReq);
-    const dCls=e.points>0?'dir-up':e.points<0?'dir-dn':'dir-neu';
-    const dIcon=e.points>0?'^':e.points<0?'v':'-';
-    const pCls=e.points>0?'pts-pos':e.points<0?'pts-neg':'pts-zer';
-    const pStr=e.points>0?'+'+e.points:e.points===0?'-':''+e.points;
+async function commitFile(newContent, message, sha){
+  // ASCII-safe base64 encoding
+  const bytes = new TextEncoder().encode(newContent);
+  let binary = '';
+  bytes.forEach(b => binary += String.fromCharCode(b));
+  const encoded = btoa(binary);
+  const r=await fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${GITHUB_FILE}`,{
+    method:'PUT',
+    headers:{'Authorization':'token '+githubToken,'Accept':'application/vnd.github.v3+json','Content-Type':'application/json'},
+    body:JSON.stringify({message, content:encoded, sha, branch:GITHUB_BRANCH})
+  });
+  if(!r.ok){const e=await r.json();throw new Error(e.message||r.status);}
+  return await r.json();
+}
 
-    let rowClass='';
-    let extraBadge='';
-    let reqDetailHtml='';
+function showApiResult(elId, state, msg){
+  const el2=el(elId); if(!el2)return;
+  el2.style.display='block';
+  el2.className='api-result '+state;
+  el2.textContent=msg;
+  if(state==='success') setTimeout(()=>{el2.style.display='none';},5000);
+}
 
-    if(isReq&&e.request){
-      const req=e.request;
-      const reqDate=parseDate(req.eventDate);
-      // check if event date falls within any active suspension
-      const clashSusp=Object.values(suspMap||{}).find(s=>s.active&&daysBetween(today,parseDate(s.liftDate))>0&&reqDate<=parseDate(s.liftDate)&&reqDate>=today);
-      if(clashSusp){
-        rowClass='log-row-clash';
-        extraBadge=`<span class="req-badge req-clash">CLASH</span>`;
-        reqDetailHtml=`<span class="req-detail"> Suspension active on this date  ${fmt(req.eventDate)}</span>`;
-      } else if(req.status==='approved'){
-        rowClass='log-row-approved';
-        extraBadge=`<span class="req-badge req-approved">APPROVED</span>`;
-        reqDetailHtml=`<span class="req-detail">${esc(req.details)}  ${fmt(req.eventDate)}</span>`;
-      } else if(req.status==='declined'){
-        rowClass='log-row-declined';
-        extraBadge=`<span class="req-badge req-declined">DECLINED</span>`;
-        reqDetailHtml=`<span class="req-detail">${esc(req.details)}  ${fmt(req.eventDate)}</span>`;
-      } else {
-        rowClass='log-row-pending';
-        extraBadge=`<span class="req-badge req-pending">PENDING</span>`;
-        reqDetailHtml=`<span class="req-detail">${esc(req.details)}  ${fmt(req.eventDate)}</span>`;
-      }
-    } else if(isDiary){
-      rowClass='log-row-diary';
-      extraBadge=`<span class="diary-tag">NOTE</span>`;
+async function apiCommitNew(){
+  if(!pendingNewBlock){alert('Generate an entry first.');return;}
+  const btn=el('api-commit-btn'); btn.disabled=true; btn.textContent='Committing';
+  showApiResult('api-result-new','loading','Fetching current file');
+  try{
+    const {sha,content}=await getFileSHA();
+    // insert at top of eventLog
+    const marker='eventLog: [';
+    const idx=content.indexOf(marker);
+    if(idx===-1) throw new Error('Could not find eventLog in file');
+    const insertAt=idx+marker.length;
+    const newContent=content.slice(0,insertAt)+'\n'+pendingNewBlock+content.slice(insertAt);
+    // also update lastUpdated
+    const today=new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
+    const updated=newContent.replace(/lastUpdated:\s*"[^"]*"/, `lastUpdated: "${today}"`);
+    showApiResult('api-result-new','loading','Committing to GitHub');
+    await commitFile(updated,'Integrity Update: new entry via form',sha);
+    showApiResult('api-result-new','success','ok Committed. Board will update in ~60 seconds. Ctrl+Shift+R to refresh.');
+    btn.textContent='ok Committed';
+    setTimeout(()=>{btn.textContent=' Commit to Board Automatically';btn.disabled=false;},5000);
+  }catch(e){
+    showApiResult('api-result-new','error','Error: '+e.message);
+    btn.textContent=' Commit to Board Automatically';
+    btn.disabled=false;
+  }
+}
+
+async function apiCommitEdit(){
+  if(!pendingEditBlock||!pendingEditOriginal){alert('Select and generate an edit first.');return;}
+  const btn=el('api-edit-commit-btn'); btn.disabled=true; btn.textContent='Committing';
+  showApiResult('api-result-edit','loading','Fetching current file');
+  try{
+    const {sha,content}=await getFileSHA();
+    if(!content.includes(pendingEditOriginal.trim())){
+      throw new Error('Original entry not found in file - it may have already been changed.');
     }
-
-    const suspTag=e.suspend?`<span class="susp-tag">SUSP</span>`:'';
-    const addedBy=e.addedBy?`<span class="addedby-tag">${esc(e.addedBy)}${e.addedAt?'  '+fmtDT(e.addedAt):''}</span>`:'';
-    let auditLine='';
-    if(e.suspend){
-      const s=e.suspend;
-      auditLine=`<span class="susp-audit">Imposed: ${fmt(s.imposedDate||e.date)}${s.imposedBy?' by '+esc(s.imposedBy):''}  Original end: ${fmt(s.originalEndDate||'n/a')}${s.earlyLiftDate?'  Early lift: '+fmt(s.earlyLiftDate):''}</span>`;
-    }
-
-    const tr=document.createElement('tr');
-    if(rowClass) tr.className=rowClass;
-    tr.innerHTML=`
-      <td class="tl-date">${esc(fmt(e.date))}</td>
-      <td>${esc(e.event)}${extraBadge}${suspTag}${addedBy}${auditLine}${reqDetailHtml}</td>
-      <td class="tl-cat">${esc(e.category||'')}</td>
-      <td class="tl-by">${esc(e.addedBy||'')}</td>
-      <td class="tl-pts ${pCls}">${pStr}</td>
-      <td class="tl-dir ${dCls}">${dIcon}</td>
-    `;
-    lb.appendChild(tr);
-  });
+    const newContent=content.replace(pendingEditOriginal,pendingEditBlock);
+    const today=new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
+    const updated=newContent.replace(/lastUpdated:\s*"[^"]*"/, `lastUpdated: "${today}"`);
+    showApiResult('api-result-edit','loading','Committing to GitHub');
+    await commitFile(updated,'Integrity Update: entry edited via form',sha);
+    showApiResult('api-result-edit','success','ok Committed. Board will update in ~60 seconds.');
+    btn.textContent='ok Committed';
+    setTimeout(()=>{btn.textContent=' Commit Edit to Board Automatically';btn.disabled=false;},5000);
+  }catch(e){
+    showApiResult('api-result-edit','error','Error: '+e.message);
+    btn.textContent=' Commit Edit to Board Automatically';
+    btn.disabled=false;
+  }
 }
 
-/* - render requests strip (overview) - */
-function renderRequestsStrip(listId,sectionId,eventLog,suspMap,today){
-  const requests=eventLog.filter(e=>e.entryType==='request'&&e.request&&e.request.status!=='declined');
-  const sec=el(sectionId); if(!sec)return;
-  if(!requests.length){sec.style.display='none';return;}
-  // only show future requests
-  const future=requests.filter(e=>parseDate(e.request.eventDate)>=today);
-  if(!future.length){sec.style.display='none';return;}
-  sec.style.display='block';
-  const list=el(listId); if(!list)return;
-  list.innerHTML='';
-  future.sort((a,b)=>a.request.eventDate.localeCompare(b.request.eventDate));
-  future.forEach(e=>{
-    const req=e.request;
-    const reqDate=parseDate(req.eventDate);
-    const clashSusp=Object.values(suspMap||{}).find(s=>s.active&&reqDate<=parseDate(s.liftDate)&&reqDate>=today);
-    const div=document.createElement('div');
-    div.className='req-row'+(clashSusp?' clash':req.status==='approved'?' approved':'');
-    let statusChip='';
-    if(clashSusp) statusChip=`<span class="req-status-chip req-clash">SUSPENSION CLASH</span>`;
-    else if(req.status==='approved') statusChip=`<span class="req-status-chip req-approved">APPROVED</span>`;
-    else statusChip=`<span class="req-status-chip req-pending">PENDING</span>`;
+async function apiCommitConfig(field, newConfigLine, findPattern, resultElId){
+  const btn=event.target; btn.disabled=true; btn.textContent='Committing';
+  showApiResult(resultElId,'loading','Fetching current file');
+  try{
+    const {sha,content}=await getFileSHA();
+    const regex=new RegExp(findPattern,'m');
+    if(!regex.test(content)) throw new Error('Could not find config field in file');
+    const newContent=content.replace(regex,newConfigLine);
+    const today=new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
+    const updated=newContent.replace(/lastUpdated:\s*"[^"]*"/, `lastUpdated: "${today}"`);
+    showApiResult(resultElId,'loading','Committing');
+    await commitFile(updated,'Integrity Update: '+field+' updated via form',sha);
+    showApiResult(resultElId,'success','ok Committed. Board updates in ~60 seconds.');
+    btn.textContent='ok Committed';
+    setTimeout(()=>{btn.textContent='Generate & Commit';btn.disabled=false;},5000);
+  }catch(e){
+    showApiResult(resultElId,'error','Error: '+e.message);
+    btn.textContent='Generate & Commit';
+    btn.disabled=false;
+  }
+}
+
+/* ==================================================================
+   INIT
+================================================================== */
+function init(){
+  const today=new Date();
+  el('f-date').value=today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0');
+  el('f-visible').addEventListener('change',()=>{el('visible-label').textContent=el('f-visible').checked?'Yes - shown in trust log':'No - affects score only';});
+  el('f-date').addEventListener('change',validateForm);
+
+  // quick actions
+  ['positive','negative'].forEach(type=>{
+    const g=el('qa-'+type); g.innerHTML='';
+    QUICK_ACTIONS[type].forEach(qa=>{
+      const b=document.createElement('button');
+      b.className='qa-btn '+type;
+      const pts=qa.points>0?'+'+qa.points:qa.points===0?'0':qa.points;
+      b.innerHTML=`<span class="qa-title">${esc(qa.label)}</span><span class="qa-meta"><span class="${type==='positive'?'qa-pts-pos':'qa-pts-neg'}">${pts} pts</span>${qa.suspend?'  '+qa.suspend.days+'d suspend':qa.points===0?'  diary note':''}</span>`;
+      b.onclick=()=>applyQA(qa);
+      g.appendChild(b);
+    });
+  });
+
+  targetStates=BOARD_TARGETS.map(t=>({...t}));
+  activityStates=BOARD_ACTIVITIES.map(a=>({...a}));
+  buildTargetList();
+  buildActivityList();
+  el('focus-edit').value=BOARD_FOCUS;
+  updatePtsDisplay();
+}
+
+function switchTab(t){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===t));
+  el('panel-'+t).classList.add('active');
+}
+
+/* ==================================================================
+   FORM
+================================================================== */
+function selectType(t){
+  selectedType=t;
+  document.querySelectorAll('.type-opt').forEach(o=>o.className='type-opt'+(o.dataset.type===t?' sel-'+t:''));
+  el('pts-section').style.display=t==='diary'?'none':'block';
+  el('request-block').classList.toggle('visible',t==='request');
+  el('susp-toggle-row').style.display=t==='request'?'none':'block';
+  if(t==='request'){el('f-category').value='Request';el('f-susp-toggle').checked=false;toggleSuspend();}
+  if(t==='diary'){selectedPoints=null;updatePtsDisplay();}
+}
+
+function applyQA(qa){
+  selectType(qa.points===0&&!qa.suspend?'diary':'event');
+  el('f-event').value=qa.label;
+  el('f-category').value=qa.category;
+  if(qa.points!==0) selectPts(qa.points); else {selectedPoints=null;updatePtsDisplay();}
+  if(qa.suspend){el('f-susp-toggle').checked=true;toggleSuspend();el('f-susp-freedom').value=qa.suspend.freedom;selectDays(qa.suspend.days);el('f-susp-reason').value=qa.suspend.reason;el('f-susp-floor').value=qa.suspend.scoreFloor||'';}
+  else{el('f-susp-toggle').checked=false;toggleSuspend();}
+  validateForm();
+  setTimeout(()=>document.querySelector('#panel-new .card:nth-child(2)').scrollIntoView({behavior:'smooth',block:'start'}),100);
+}
+
+function selectPts(v){
+  selectedPoints=v;
+  document.querySelectorAll('.pts-opt').forEach(o=>{const val=Number(o.dataset.val);o.classList.remove('sel-pos','sel-neg');if(val===v)o.classList.add(v>0?'sel-pos':'sel-neg');});
+  updatePtsDisplay();
+}
+function updatePtsDisplay(){
+  const d=el('pts-display');if(!d)return;
+  if(selectedPoints===null){d.textContent='No points selected';d.style.color='var(--text-dim)';}
+  else{d.textContent=(selectedPoints>0?'+':'')+selectedPoints+' points';d.style.color=selectedPoints>0?'var(--granted)':'var(--suspended)';}
+}
+function selectDays(v){selectedDays=v;document.querySelectorAll('.days-opt').forEach(o=>o.classList.toggle('selected',Number(o.dataset.days)===v));}
+function toggleSuspend(){el('suspend-block').classList.toggle('visible',el('f-susp-toggle').checked);}
+function validateForm(){const d=el('f-date').value;const n=el('val-notice');if(d){const e=new Date(d);const t=new Date();t.setHours(0,0,0,0);if(e>t){n.style.display='block';n.textContent=' Date is in the future - is this correct?';return;}}n.style.display='none';}
+
+function generateEntry(){
+  const date=el('f-date').value; const event=el('f-event').value.trim();
+  const cat=el('f-category').value; const visible=el('f-visible').checked;
+  const addedBy=el('f-addedby').value; const notes=el('f-notes').value.trim();
+  const hasSusp=el('f-susp-toggle').checked;
+  if(!date){alert('Please select a date.');return;}
+  if(!event){alert('Please enter a description.');return;}
+  const pts=selectedType==='diary'?0:(selectedPoints===null?0:selectedPoints);
+  if(selectedType==='event'&&pts===0){if(!confirm('Points are 0 - continue?'))return;}
+  const addedAt=new Date().toISOString().slice(0,16)+':00';
+  let reqBlock='';
+  if(selectedType==='request'){
+    const rDate=el('f-req-date').value; const rStatus=el('f-req-status').value; const rDetails=el('f-req-details').value.trim();
+    if(!rDate){alert('Please enter the event date.');return;}
+    reqBlock=`,\n      request: {\n        eventDate: "${rDate}",\n        details:   "${rDetails.replace(/"/g,'\\"')}",\n        status:    "${rStatus}"\n      }`;
+  }
+  let suspBlock='';
+  if(hasSusp&&selectedType!=='request'){
+    const freedom=el('f-susp-freedom').value; const days=selectedDays||9;
+    const reason=el('f-susp-reason').value.trim()||'Suspended';
+    const floor=el('f-susp-floor').value.trim(); const earlyLift=el('f-susp-earlylift').value.trim();
+    const startD=new Date(date); const endD=new Date(startD); endD.setDate(endD.getDate()+days);
+    const origEnd=endD.getFullYear()+'-'+String(endD.getMonth()+1).padStart(2,'0')+'-'+String(endD.getDate()).padStart(2,'0');
+    suspBlock=`,\n      suspend: {\n        freedom:         "${freedom}",\n        days:            ${days},\n        reason:          "${reason.replace(/"/g,'\\"')}",\n        scoreFloor:      ${floor||'null'},\n        earlyLiftDate:   ${earlyLift?'"'+earlyLift+'"':'null'},\n        imposedDate:     "${date}",\n        imposedBy:       "${addedBy}",\n        originalEndDate: "${origEnd}"\n      }`;
+  }
+  const block=`    {\n      date:      "${date}",\n      event:     "${event.replace(/"/g,'\\"')}",\n      category:  "${cat}",\n      entryType: "${selectedType}",\n      points:    ${pts},\n      addedBy:   "${addedBy}",\n      addedAt:   "${addedAt}",\n      notes:     "${notes.replace(/"/g,'\\"')}",\n      visible:   ${visible}${reqBlock}${suspBlock}\n    },`;
+  pendingNewBlock=block;
+  el('output-code').textContent=block;
+  el('output-section').classList.add('visible');
+  setTimeout(()=>el('output-section').scrollIntoView({behavior:'smooth',block:'start'}),100);
+  el('copy-confirm').textContent='';
+  if(githubToken) el('api-commit-btn').classList.add('visible');
+}
+
+/* ==================================================================
+   EDIT EXISTING (BL-17)
+================================================================== */
+function loadEditEntries(){
+  const raw=el('edit-paste').value.trim(); let events=[];
+  try{const c=raw.startsWith('[')?raw:'['+raw+']';events=JSON.parse(c);}
+  catch(e){alert('Could not parse. Paste the eventLog array contents.');return;}
+  editEntries=events.sort((a,b)=>b.date.localeCompare(a.date));
+  const list=el('edit-entries-list'); list.innerHTML='';
+  editEntries.forEach((e,i)=>{
+    const isReq=e.entryType==='request';
+    const hasSusp=!!e.suspend;
+    if(!isReq&&!hasSusp) return; // only show editable entries
+    const div=document.createElement('div'); div.className='existing-entry'; div.dataset.idx=i;
+    const mn=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const[y,m,d]=e.date.split('-').map(Number);
     div.innerHTML=`
-      <div class="req-event-name">${esc(e.event)}</div>
-      <div class="req-event-date">${fmt(req.eventDate)}</div>
-      ${statusChip}
+      <div class="ee-date">${d+' '+mn[m-1]+' '+y}</div>
+      <div class="ee-event">${esc(e.event)}${isReq?'<span class="ee-badge ee-request">REQUEST</span>':''}${hasSusp?'<span class="ee-badge ee-suspend">SUSPENSION</span>':''}</div>
+      <div class="ee-meta">${e.addedBy||''}  ${e.category||''}</div>
+      ${isReq?`<div class="edit-form" id="edit-form-${i}">
+        <div class="two-col-form" style="margin-top:8px">
+          <div class="form-row"><label>Request Status</label>
+            <select id="edit-req-status-${i}">
+              <option value="pending" ${e.request?.status==='pending'?'selected':''}>Pending</option>
+              <option value="approved" ${e.request?.status==='approved'?'selected':''}>Approved</option>
+              <option value="declined" ${e.request?.status==='declined'?'selected':''}>Declined</option>
+            </select></div>
+          <div class="form-row"><label>Event Date</label><input type="date" id="edit-req-date-${i}" value="${e.request?.eventDate||''}"></div>
+        </div>
+        <div class="form-row"><label>Details</label><input type="text" id="edit-req-details-${i}" value="${esc(e.request?.details||'')}"></div>
+        <button class="add-btn" style="margin-top:8px" onclick="generateEdit(${i})">Generate Edit</button>
+      </div>`:''}
+      ${hasSusp?`<div class="edit-form" id="edit-form-${i}">
+        <div class="two-col-form" style="margin-top:8px">
+          <div class="form-row"><label>Early Lift Date</label><input type="date" id="edit-earlylift-${i}" value="${e.suspend?.earlyLiftDate||''}"><div class="hint">Set to end suspension early</div></div>
+          <div class="form-row"><label>Score Floor</label><input type="number" id="edit-floor-${i}" value="${e.suspend?.scoreFloor||''}" min="0" max="100"></div>
+        </div>
+        <button class="add-btn" style="margin-top:8px" onclick="generateEdit(${i})">Generate Edit</button>
+      </div>`:''}
     `;
-    if(clashSusp) div.innerHTML+=`<div class="req-clash-note">Suspension active on this date</div>`;
+    div.querySelector('.existing-entry') || div;
+    div.addEventListener('click',e=>{
+      if(e.target.tagName==='BUTTON'||e.target.tagName==='SELECT'||e.target.tagName==='INPUT') return;
+      selectedEditIdx=i;
+      document.querySelectorAll('.existing-entry').forEach(d=>d.classList.remove('selected'));
+      div.classList.add('selected');
+      const form=el('edit-form-'+i);
+      if(form) form.classList.toggle('visible');
+    });
     list.appendChild(div);
   });
+  if(!list.innerHTML) list.innerHTML='<p style="color:var(--text-dim);font-size:13px;padding:8px 0">No editable entries found (requests or suspensions only).</p>';
 }
 
-/* 
-   CUSTOM LAYOUT ENGINE
- */
-const ALL_SECTIONS=[
-  {id:'s3',  label:'Freedom Status'},
-  {id:'s4',  label:'Next Unlock'},
-  {id:'s5s', label:'Active Suspensions'},
-  {id:'s5w', label:'Recent Wins'},
-  {id:'s6',  label:'Recent Setbacks'},
-  {id:'s7',  label:"This Week's Focus"},
-  {id:'s8',  label:'Targets'},
-  {id:'s9',  label:'Important Activities'},
-  {id:'s10', label:'Goal'},
-  {id:'s12', label:'Full Trust Log'},
-  {id:'sreq',label:'On The Radar'}
-];
-const DEFAULT_LAYOUT={
-  zones:[
-    {id:'z1',type:'full',    sections:['s3']},
-    {id:'z2',type:'two-col', left:['s4','s5w'],right:['s5s','s6']},
-    {id:'z3',type:'full',    sections:['s7','s8','s9','s10','s12']}
-  ],
-  pool:['sreq']
-};
-let cvLayout=null; let cvDragItem=null; let cvNextZoneId=10;
-let cvLongPressTimer=null; let cvTouchClone=null;
-
-function cvSave(){try{localStorage.setItem('tfb-cv-layout',JSON.stringify(cvLayout));}catch(e){}; const s=el('cv-save-status');if(s){s.textContent='ok Saved';setTimeout(()=>{s.textContent='';},1500);}}
-function cvLoad(){try{const r=localStorage.getItem('tfb-cv-layout');if(r){const p=JSON.parse(r);if(p&&p.zones){cvLayout=p;return;}}}catch(e){}; cvLayout=JSON.parse(JSON.stringify(DEFAULT_LAYOUT));}
-function resetLayout(){if(!confirm('Reset layout to default?'))return; cvLayout=JSON.parse(JSON.stringify(DEFAULT_LAYOUT));cvNextZoneId=10;cvSave();renderCustomBoard();}
-function addZone(type){const id='z'+(cvNextZoneId++);cvLayout.zones.push(type==='two-col'?{id,type:'two-col',left:[],right:[]}:{id,type:'full',sections:[]});cvSave();renderCustomBoard();}
-function deleteZone(zId){const z=cvLayout.zones.find(x=>x.id===zId);if(!z)return;const sects=z.type==='two-col'?[...(z.left||[]),...(z.right||[])]:(z.sections||[]);cvLayout.pool=[...(cvLayout.pool||[]),...sects];cvLayout.zones=cvLayout.zones.filter(x=>x.id!==zId);cvSave();renderCustomBoard();}
-function toggleZoneType(zId){const z=cvLayout.zones.find(x=>x.id===zId);if(!z)return;if(z.type==='full'){const s=z.sections||[];z.type='two-col';z.left=s.filter((_,i)=>i%2===0);z.right=s.filter((_,i)=>i%2===1);delete z.sections;}else{z.type='full';z.sections=[...(z.left||[]),...(z.right||[])];delete z.left;delete z.right;}cvSave();renderCustomBoard();}
-function moveZone(zId,dir){const i=cvLayout.zones.findIndex(x=>x.id===zId);if(i<0)return;const ni=i+dir;if(ni<0||ni>=cvLayout.zones.length)return;const z=cvLayout.zones.splice(i,1)[0];cvLayout.zones.splice(ni,0,z);cvSave();renderCustomBoard();}
-function ejectSection(sId,zId,col){const z=cvLayout.zones.find(x=>x.id===zId);if(!z)return;if(z.type==='two-col'){if(col==='left')z.left=(z.left||[]).filter(s=>s!==sId);else z.right=(z.right||[]).filter(s=>s!==sId);}else{z.sections=(z.sections||[]).filter(s=>s!==sId);}cvLayout.pool=[...(cvLayout.pool||[]),sId];cvSave();renderCustomBoard();}
-function moveSectionInZone(sId,zId,col,dir){const z=cvLayout.zones.find(x=>x.id===zId);if(!z)return;const arr=z.type==='two-col'?(col==='left'?z.left:z.right):z.sections;const i=arr.indexOf(sId);if(i<0)return;const ni=i+dir;if(ni<0||ni>=arr.length)return;arr.splice(i,1);arr.splice(ni,0,sId);cvSave();renderCustomBoard();}
-
-function cvDragStart(kind,id,srcZoneId,srcCol){cvDragItem={kind,id,srcZoneId,srcCol};}
-function cvDragEnd(){cvDragItem=null;}
-function removeSectionFromSource(sId,srcZoneId,srcCol){if(!srcZoneId){cvLayout.pool=(cvLayout.pool||[]).filter(s=>s!==sId);return;}const z=cvLayout.zones.find(x=>x.id===srcZoneId);if(!z)return;if(z.type==='two-col'){if(srcCol==='left')z.left=(z.left||[]).filter(s=>s!==sId);else z.right=(z.right||[]).filter(s=>s!==sId);}else{z.sections=(z.sections||[]).filter(s=>s!==sId);}}
-
-function cvDropOnPool(){if(!cvDragItem)return;if(cvDragItem.kind==='section'){removeSectionFromSource(cvDragItem.id,cvDragItem.srcZoneId,cvDragItem.srcCol);if(!(cvLayout.pool||[]).includes(cvDragItem.id))cvLayout.pool=[...(cvLayout.pool||[]),cvDragItem.id];cvSave();renderCustomBoard();}cvDragEnd();}
-function cvDropOnZone(targetZoneId,targetCol){if(!cvDragItem)return;const item=cvDragItem;cvDragEnd();if(item.kind==='zone'){const fi=cvLayout.zones.findIndex(z=>z.id===item.id);const ti=cvLayout.zones.findIndex(z=>z.id===targetZoneId);if(fi>=0&&ti>=0&&fi!==ti){const z=cvLayout.zones.splice(fi,1)[0];cvLayout.zones.splice(ti,0,z);cvSave();renderCustomBoard();}return;}if(item.kind==='section'||item.kind==='chip'){const sId=item.id;if(item.kind==='section')removeSectionFromSource(sId,item.srcZoneId,item.srcCol);else cvLayout.pool=(cvLayout.pool||[]).filter(s=>s!==sId);const z=cvLayout.zones.find(x=>x.id===targetZoneId);if(!z)return;if(z.type==='two-col'){const col=targetCol==='right'?z.right:z.left;if(!col.includes(sId))col.push(sId);}else{if(!(z.sections||[]).includes(sId))z.sections.push(sId);}cvSave();renderCustomBoard();}}
-
-function cvSectionHTML(sId){
-  const C=CONFIG; const today=new Date(); today.setHours(0,0,0,0);
-  let score=C.startingScore||50; C.eventLog.forEach(e=>{score+=(e.points||0);}); score=Math.max(0,Math.min(100,Math.round(score)));
-  const suspMap=calcSuspensions(C.eventLog,today);
-  const raw={}; FREEDOM_ORDER.forEach(n=>{raw[n]=getRawStatus(n,score,suspMap,C);}); const fs=applyCascade(raw);
-  const visible=[...C.eventLog].filter(e=>e.visible!==false).sort((a,b)=>b.date.localeCompare(a.date));
-  const uid=sId+'-'+Math.random().toString(36).slice(2,6);
-  switch(sId){
-    case 's3': return`<div style="font-size:12px;color:var(--text-dim);font-style:italic">Carousel shown in Detail view.</div>`;
-    case 's4':{const h=`<div class="unlock-card"><div class="unlock-header"><span class="unlock-arrow">-></span><span id="cv-ut-${uid}"></span></div><div id="cv-um-${uid}"></div><ul class="unlock-behaviours" id="cv-ub-${uid}"></ul></div>`;setTimeout(()=>renderUnlock(el('cv-ut-'+uid),el('cv-um-'+uid),el('cv-ub-'+uid),score,fs,suspMap),0);return h;}
-    case 's5s':{const active=Object.entries(suspMap).filter(([,v])=>v.active);return active.length?`<div class="suspensions-panel" style="margin:0">${active.map(([n,s])=>`<div class="suspension-row"><div class="susp-left"><div class="susp-freedom">${esc(n)}</div><div class="susp-days">${s.daysRemaining}</div></div><div class="susp-detail"><div class="susp-reason">${esc(s.reason)}</div><div class="susp-meta">Lifts: ${fmt(s.liftDate)}</div></div></div>`).join('')}</div>`:`<div class="empty-note">No active suspensions ok</div>`;}
-    case 's5w':{const w=visible.filter(e=>e.points>0).slice(0,6);return`<div class="wins-card" style="margin:0">${w.length?w.map(x=>`<div class="win-item"><span class="win-dot"></span><span>${esc(x.event)}</span></div>`).join(''):'<div class="empty-dim">No wins recorded yet.</div>'}</div>`;}
-    case 's6':{const sb=visible.filter(e=>e.points<0).slice(0,6);return`<div class="setbacks-card" style="margin:0">${sb.length?sb.map(x=>`<div class="setback-item"><span class="setback-dot"></span><span>${esc(x.event)}</span></div>`).join(''):'<div class="empty-note">No setbacks ok</div>'}</div>`;}
-    case 's7': return`<div class="focus-card" style="margin:0"><div class="focus-text">${esc(C.currentFocus)}</div></div>`;
-    case 's8': return`<div class="targets-grid">${(C.targets||[]).map(t=>`<div class="target-card${t.achieved?' achieved':''}"><div class="target-icon">${t.achieved?'ok':'o'}</div><div class="target-label">${esc(t.label)}</div></div>`).join('')}</div>`;
-    case 's9': return`<div class="hca-grid">${(C.highCostActivities||[]).map(a=>`<div class="hca-item${a.active?' active':' suspended'}"><span class="hca-dot"></span>${esc(a.label)}</div>`).join('')}</div>`;
-    case 's10': return`<div class="goal-banner" style="margin:0"><div class="goal-text"><strong>"Our goal is not obedience.</strong><br>Our goal is to help build a trustworthy, independent young man<br>who can make good decisions <strong>when nobody is watching."</strong></div></div>`;
-    case 's12':{setTimeout(()=>renderLog('cv-log-'+uid,visible,suspMap,today),0);return`<div class="card" style="padding:10px"><table class="log-table"><thead><tr><th class="tl-date">Date</th><th>Event</th><th class="tl-cat">Cat</th><th class="tl-pts">Pts</th><th class="tl-dir">^v</th></tr></thead><tbody id="cv-log-${uid}"></tbody></table></div>`;}
-    case 'sreq':{const reqs=C.eventLog.filter(e=>e.entryType==='request'&&e.request&&e.request.status!=='declined'&&parseDate(e.request.eventDate)>=today);return reqs.length?`<div>${reqs.map(e=>`<div class="req-row${e.request.status==='approved'?' approved':''}"><div class="req-event-name">${esc(e.event)}</div><div class="req-event-date">${fmt(e.request.eventDate)}</div><span class="req-status-chip req-${e.request.status}">${e.request.status.toUpperCase()}</span></div>`).join('')}</div>`:`<div class="empty-dim">No upcoming requests.</div>`;}
-    default: return`<div style="color:var(--text-dim);font-size:12px">Unknown section</div>`;
+function generateEdit(idx){
+  const e=editEntries[idx];
+  const isReq=e.entryType==='request';
+  const hasSusp=!!e.suspend;
+  // build original block string for replacement
+  const orig=JSON.stringify(e,null,6).replace(/^/gm,'    ').replace(/^\s{4}\}/,'    }').trim();
+  // build updated entry
+  const updated=JSON.parse(JSON.stringify(e)); // deep clone
+  if(isReq&&updated.request){
+    updated.request.status=el('edit-req-status-'+idx)?.value||updated.request.status;
+    updated.request.eventDate=el('edit-req-date-'+idx)?.value||updated.request.eventDate;
+    updated.request.details=el('edit-req-details-'+idx)?.value||updated.request.details;
   }
-}
-
-function cvMakePlaced(sId,zId,col){
-  const info=ALL_SECTIONS.find(s=>s.id===sId)||{label:sId};
-  const div=document.createElement('div'); div.className='cv-placed'; div.dataset.sectionId=sId; div.dataset.zoneId=zId; div.dataset.col=col||'';
-  div.innerHTML=`<div class="cv-placed-header"><span class="cv-placed-grip">:</span><span class="cv-placed-name">${esc(info.label)}</span><div class="cv-placed-arrows"><button class="cv-placed-arrow">^</button><button class="cv-placed-arrow">v</button><button class="cv-placed-eject">x</button></div></div><div class="cv-placed-content">${cvSectionHTML(sId)}</div>`;
-  const header=div.querySelector('.cv-placed-header');
-  const btns=div.querySelectorAll('.cv-placed-arrow');
-  div.querySelector('.cv-placed-eject').onclick=()=>ejectSection(sId,zId,col);
-  btns[0].onclick=()=>moveSectionInZone(sId,zId,col,-1);
-  btns[1].onclick=()=>moveSectionInZone(sId,zId,col,1);
-  header.draggable=true;
-  header.addEventListener('dragstart',e=>{cvDragStart('section',sId,zId,col);div.classList.add('dragging');e.dataTransfer.effectAllowed='move';});
-  header.addEventListener('dragend',()=>{div.classList.remove('dragging');cvDragEnd();});
-  cvAttachLongPress(header,()=>{cvDragStart('section',sId,zId,col);cvStartTouchFollow(div,endE=>{const t=endE.changedTouches[0];const tgt=document.elementFromPoint(t.clientX,t.clientY);const dz=tgt?.closest('[data-drop-zone]');const dc=tgt?.closest('[data-drop-col]');if(dz){removeSectionFromSource(sId,zId,col);const zone=cvLayout.zones.find(z=>z.id===dz.dataset.dropZone);if(zone){if(zone.type==='two-col'){const arr=dc?.dataset.dropCol==='right'?zone.right:zone.left;if(!arr.includes(sId))arr.push(sId);}else{if(!zone.sections.includes(sId))zone.sections.push(sId);}}cvSave();cvDragEnd();renderCustomBoard();}else if(tgt?.closest('#cv-pool')){removeSectionFromSource(sId,zId,col);if(!cvLayout.pool.includes(sId))cvLayout.pool.push(sId);cvSave();cvDragEnd();renderCustomBoard();}else cvDragEnd();});});
-  return div;
-}
-
-function cvMakeDropZone(zId,col,isEmpty){
-  const dz=document.createElement('div'); dz.className=col?'cv-col':'cv-fullwidth-drop'; dz.dataset.dropZone=zId; if(col)dz.dataset.dropCol=col;
-  if(col)dz.innerHTML=`<div class="cv-col-label">${col==='left'?'Left':'Right'}</div>`;
-  if(isEmpty){const e=document.createElement('div');e.className=col?'cv-col-empty':'cv-fullwidth-empty';e.textContent='Drop sections here';dz.appendChild(e);}
-  dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('dragover');});
-  dz.addEventListener('dragleave',()=>dz.classList.remove('dragover'));
-  dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('dragover');cvDropOnZone(zId,col||null);});
-  return dz;
-}
-
-function renderCustomBoard(){
-  const pool=el('cv-pool'); if(pool){
-    pool.innerHTML='';
-    const ps=cvLayout.pool||[];
-    if(!ps.length)pool.innerHTML=`<div style="font-size:11px;color:var(--text-dim);font-style:italic;align-self:center">All sections placed</div>`;
-    else ps.forEach(sid=>{
-      const info=ALL_SECTIONS.find(s=>s.id===sid)||{label:sid};
-      const chip=document.createElement('div'); chip.className='cv-chip'; chip.innerHTML=`<span>:</span>${esc(info.label)}`;
-      chip.draggable=true;
-      chip.addEventListener('dragstart',e=>{cvDragStart('chip',sid,null,null);chip.classList.add('dragging');e.dataTransfer.effectAllowed='move';});
-      chip.addEventListener('dragend',()=>{chip.classList.remove('dragging');cvDragEnd();});
-      cvAttachLongPress(chip,()=>{cvDragStart('chip',sid,null,null);cvStartTouchFollow(chip,endE=>{const t=endE.changedTouches[0];const tgt=document.elementFromPoint(t.clientX,t.clientY);const dz=tgt?.closest('[data-drop-zone]');const dc=tgt?.closest('[data-drop-col]');if(dz){cvLayout.pool=(cvLayout.pool||[]).filter(s=>s!==sid);const zone=cvLayout.zones.find(z=>z.id===dz.dataset.dropZone);if(zone){if(zone.type==='two-col'){const arr=dc?.dataset.dropCol==='right'?zone.right:zone.left;if(!arr.includes(sid))arr.push(sid);}else{if(!zone.sections.includes(sid))zone.sections.push(sid);}}cvSave();cvDragEnd();renderCustomBoard();}else cvDragEnd();});});
-      pool.appendChild(chip);
-    });
-    pool.addEventListener('dragover',e=>{e.preventDefault();pool.classList.add('dragover');});
-    pool.addEventListener('dragleave',()=>pool.classList.remove('dragover'));
-    pool.addEventListener('drop',e=>{e.preventDefault();pool.classList.remove('dragover');cvDropOnPool();});
+  if(hasSusp&&updated.suspend){
+    const el2=el('edit-earlylift-'+idx); if(el2) updated.suspend.earlyLiftDate=el2.value||null;
+    const fl=el('edit-floor-'+idx); if(fl) updated.suspend.scoreFloor=fl.value?Number(fl.value):null;
   }
-  const zonesEl=el('cv-zones'); if(!zonesEl)return; zonesEl.innerHTML='';
-  cvLayout.zones.forEach((zone)=>{
-    const zEl=document.createElement('div'); zEl.className='cv-zone'; zEl.dataset.zoneId=zone.id;
-    const header=document.createElement('div'); header.className='cv-zone-header';
-    header.innerHTML=`<span class="cv-zone-grip">:</span><button class="cv-zone-type-btn">${zone.type==='two-col'?'Two Column':'Full Width'}</button><div class="cv-zone-arrows"><button class="cv-zone-arrow">^</button><button class="cv-zone-arrow">v</button></div><button class="cv-zone-delete">x</button>`;
-    header.querySelector('.cv-zone-type-btn').onclick=()=>toggleZoneType(zone.id);
-    const arrs=header.querySelectorAll('.cv-zone-arrow'); arrs[0].onclick=()=>moveZone(zone.id,-1); arrs[1].onclick=()=>moveZone(zone.id,1);
-    header.querySelector('.cv-zone-delete').onclick=()=>deleteZone(zone.id);
-    const grip=header.querySelector('.cv-zone-grip');
-    grip.draggable=true;
-    grip.addEventListener('dragstart',e=>{cvDragStart('zone',zone.id,null,null);zEl.classList.add('zone-dragging');e.dataTransfer.effectAllowed='move';});
-    grip.addEventListener('dragend',()=>{zEl.classList.remove('zone-dragging');cvDragEnd();});
-    zEl.addEventListener('dragover',e=>{e.preventDefault();zEl.classList.add('zone-dragover');});
-    zEl.addEventListener('dragleave',e=>{if(!zEl.contains(e.relatedTarget))zEl.classList.remove('zone-dragover');});
-    zEl.addEventListener('drop',e=>{e.preventDefault();zEl.classList.remove('zone-dragover');if(cvDragItem&&cvDragItem.kind==='zone')cvDropOnZone(zone.id,null);});
-    cvAttachLongPress(grip,()=>{cvDragStart('zone',zone.id,null,null);cvStartTouchFollow(grip,endE=>{const t=endE.changedTouches[0];const tgt=document.elementFromPoint(t.clientX,t.clientY);const tz=tgt?.closest('.cv-zone');if(tz&&tz.dataset.zoneId!==zone.id){const fi=cvLayout.zones.findIndex(z=>z.id===zone.id);const ti=cvLayout.zones.findIndex(z=>z.id===tz.dataset.zoneId);if(fi>=0&&ti>=0){const z=cvLayout.zones.splice(fi,1)[0];cvLayout.zones.splice(ti,0,z);cvSave();cvDragEnd();renderCustomBoard();}}else cvDragEnd();});});
-    zEl.appendChild(header);
-    const body=document.createElement('div'); body.className='cv-zone-body'+(zone.type==='two-col'?' two-col-body':'');
-    if(zone.type==='two-col'){
-      ['left','right'].forEach(col=>{
-        const colSects=zone[col]||[];
-        const dz=cvMakeDropZone(zone.id,col,colSects.length===0);
-        colSects.forEach(sid=>{dz.appendChild(cvMakePlaced(sid,zone.id,col));});
-        body.appendChild(dz);
-      });
-    } else {
-      const sects=zone.sections||[];
-      const dz=cvMakeDropZone(zone.id,null,sects.length===0);
-      sects.forEach(sid=>{dz.appendChild(cvMakePlaced(sid,zone.id,null));});
-      body.appendChild(dz);
-    }
-    zEl.appendChild(body); zonesEl.appendChild(zEl);
+  const newBlock=JSON.stringify(updated,null,6).replace(/^/gm,'    ').replace(/^\s{4}\}/,'    }').trim()+',';
+  pendingEditOriginal=orig+',';
+  pendingEditBlock=newBlock;
+  el('edit-output-code').textContent=newBlock;
+  el('edit-output-section').classList.add('visible');
+  if(githubToken) el('api-edit-commit-btn').classList.add('visible');
+  setTimeout(()=>el('edit-output-section').scrollIntoView({behavior:'smooth',block:'start'}),100);
+}
+
+/* -- TARGETS / FOCUS / ACTIVITIES -- */
+function buildTargetList(){
+  const list=el('target-list'); if(!list)return; list.innerHTML='';
+  targetStates.forEach((t,i)=>{
+    const row=document.createElement('div'); row.className='target-row'+(t.achieved?' achieved':'');
+    const check=document.createElement('div'); check.className='target-check'+(t.achieved?' done':''); check.textContent=t.achieved?'ok':'';
+    check.onclick=()=>{targetStates[i].achieved=!targetStates[i].achieved;buildTargetList();};
+    const text=document.createElement('div'); text.className='row-text'; text.textContent=t.label;
+    const del=document.createElement('button'); del.className='del-btn'; del.textContent='x';
+    del.onclick=()=>{targetStates.splice(i,1);buildTargetList();};
+    row.appendChild(check); row.appendChild(text); row.appendChild(del);
+    list.appendChild(row);
   });
 }
+function addTarget(){const v=el('new-target-input').value.trim();if(!v)return;targetStates.push({label:v,achieved:false});el('new-target-input').value='';buildTargetList();}
 
-function cvAttachLongPress(el2,cb){
-  el2.addEventListener('touchstart',e=>{cvLongPressTimer=setTimeout(()=>{navigator.vibrate&&navigator.vibrate(40);cb(e);},500);},{passive:true});
-  el2.addEventListener('touchend',()=>clearTimeout(cvLongPressTimer),{passive:true});
-  el2.addEventListener('touchmove',()=>clearTimeout(cvLongPressTimer),{passive:true});
+function buildActivityList(){
+  const list=el('activity-list'); if(!list)return; list.innerHTML='';
+  activityStates.forEach((a,i)=>{
+    const row=document.createElement('div'); row.className='activity-row'+(a.active?' active':' suspended');
+    const tog=document.createElement('div'); tog.className='activity-toggle'+(a.active?' on':' off'); tog.textContent=a.active?'ok':'x';
+    tog.onclick=()=>{activityStates[i].active=!activityStates[i].active;buildActivityList();};
+    const name=document.createElement('div'); name.className='row-text'; name.textContent=a.label;
+    const del=document.createElement('button'); del.className='del-btn'; del.textContent='x';
+    del.onclick=()=>{activityStates.splice(i,1);buildActivityList();};
+    row.appendChild(tog); row.appendChild(name); row.appendChild(del);
+    list.appendChild(row);
+  });
 }
-function cvStartTouchFollow(srcEl,onEnd){
-  if(cvTouchClone){cvTouchClone.remove();cvTouchClone=null;}
-  cvTouchClone=srcEl.cloneNode(true);
-  cvTouchClone.style.cssText=`position:fixed;left:-999px;top:-999px;opacity:0.8;z-index:9999;pointer-events:none;width:${srcEl.offsetWidth}px;border:2px solid var(--gold);border-radius:3px;background:var(--surface);`;
-  document.body.appendChild(cvTouchClone);
-  const mH=e=>{const t=e.touches[0];cvTouchClone.style.left=(t.clientX-20)+'px';cvTouchClone.style.top=(t.clientY-20)+'px';document.querySelectorAll('[data-drop-zone]').forEach(d=>d.classList.remove('dragover'));document.elementFromPoint(t.clientX,t.clientY)?.closest('[data-drop-zone]')?.classList.add('dragover');};
-  const eH=e=>{document.removeEventListener('touchmove',mH);document.removeEventListener('touchend',eH);if(cvTouchClone){cvTouchClone.remove();cvTouchClone=null;}document.querySelectorAll('[data-drop-zone]').forEach(d=>d.classList.remove('dragover'));onEnd(e);};
-  document.addEventListener('touchmove',mH,{passive:true});
-  document.addEventListener('touchend',eH,{passive:true});
-}
+function addActivity(){const v=el('new-activity-input').value.trim();if(!v)return;activityStates.push({label:v,active:true,suspendReason:""});el('new-activity-input').value='';buildActivityList();}
 
-/* 
-   MAIN RENDER
- */
-function render(){
-  const C=CONFIG;
-  const today=new Date(); today.setHours(0,0,0,0);
-
-  /* score */
-  let score=C.startingScore||50;
-  C.eventLog.forEach(e=>{score+=(e.points||0);});
-  score=Math.max(0,Math.min(100,Math.round(score)));
-
-  /* suspensions */
-  const suspMap=calcSuspensions(C.eventLog,today);
-
-  /* band */
-  const band=BANDS.find(b=>score>=b.min&&score<=b.max)||BANDS[2];
-
-  /* topbar */
-  el('tb-name').textContent   =C.name+"'s Board";
-  el('tb-score').textContent  =score;
-  el('tb-updated').textContent="Updated "+C.lastUpdated;
-
-  /* 1 position */
-  const pi=el('pos-icon');
-  pi.textContent=band.icon; pi.style.color=band.color; pi.style.borderColor=band.color;
-  el('pos-status').textContent=band.label; el('pos-status').style.color=band.color;
-  el('pos-message').textContent=band.msgFn(C.name);
-  const fill=el('score-fill'); fill.style.width=score+'%'; fill.style.background=band.color;
-  const sn=el('score-num'); sn.textContent=score; sn.style.color=band.color;
-  el('score-ring').style.borderColor=band.color;
-  el('position-banner').style.borderTopColor=band.color;
-
-  /* freedom statuses */
-  const rawStatuses={};
-  FREEDOM_ORDER.forEach(n=>{rawStatuses[n]=getRawStatus(n,score,suspMap,C);});
-  const freedomStatuses=applyCascade(rawStatuses);
-
-  /* - OVERVIEW - */
-  /* 8 targets */
-  const otg=el('ov-targets-grid');
-  if(otg){otg.innerHTML='';(C.targets||[]).forEach(t=>{const d=document.createElement('div');d.className='target-card'+(t.achieved?' achieved':'');d.innerHTML=`<div class="target-icon">${t.achieved?'ok':'o'}</div><div class="target-label">${esc(t.label)}</div>`;otg.appendChild(d);});}
-
-  /* 3 flat grid */
-  renderFlatGrid('ov-freedom-grid',freedomStatuses,suspMap,rawStatuses);
-
-  /* 4 unlock + 5 suspensions */
-  renderUnlock(el('ov-unlock-target'),el('ov-unlock-meta'),el('ov-unlock-behaviours'),score,freedomStatuses,suspMap);
-  renderSuspPanel('ov-suspensions-panel','ov-suspensions-section',suspMap);
-
-  /* pending requests strip */
-  renderRequestsStrip('ov-requests-list','ov-requests-section',C.eventLog,suspMap,today);
-
-  /* - DETAIL - */
-  /* 3 carousel */
-  buildCarousel(freedomStatuses,suspMap,rawStatuses);
-
-  /* 12 full log */
-  const visible=[...C.eventLog].filter(e=>e.visible!==false).sort((a,b)=>b.date.localeCompare(a.date));
-  renderLog('dt-log-body',visible,suspMap,today);
-
-  /* 5 wins/setbacks */
-  const wins=visible.filter(e=>e.points>0&&e.entryType!=='request').slice(0,6);
-  const setbacks=visible.filter(e=>e.points<0).slice(0,6);
-  const dtw=el('dt-wins-list');
-  if(dtw)dtw.innerHTML=wins.length?wins.map(w=>`<div class="win-item"><span class="win-dot"></span><span>${esc(w.event)}</span></div>`).join(''):'<div class="empty-dim">No wins recorded yet.</div>';
-  const dts=el('dt-setbacks-list');
-  if(dts)dts.innerHTML=setbacks.length?setbacks.map(s=>`<div class="setback-item"><span class="setback-dot"></span><span>${esc(s.event)}</span></div>`).join(''):'<div class="empty-note">No setbacks this period ok</div>';
-
-  /* 5 suspensions */
-  renderSuspPanel('dt-suspensions-panel','dt-suspensions-section',suspMap);
-
-  /* 4 unlock */
-  renderUnlock(el('dt-unlock-target'),el('dt-unlock-meta'),el('dt-unlock-behaviours'),score,freedomStatuses,suspMap);
-
-  /* 9 activities */
-  const dhg=el('dt-hca-grid');
-  if(dhg){dhg.innerHTML='';(C.highCostActivities||[]).forEach(a=>{const d=document.createElement('div');d.className='hca-item'+(a.active?' active':' suspended');d.innerHTML=`<span class="hca-dot"></span>${esc(a.label)}`;dhg.appendChild(d);});}
-
-  /* 7 focus */
-  const dft=el('dt-focus-text'); if(dft)dft.textContent=C.currentFocus;
-
-  /* 2 board context */
-  const dbc=el('dt-board-context');
-  if(dbc)dbc.innerHTML=`Board active from <strong>${esc(C.boardActiveFrom)}</strong>. ${esc(C.startingNote)}`;
-
-  /* footer */
-  el('footer').textContent=`TRUST & FREEDOM BOARD  ${C.name.toUpperCase()}  UPDATED: ${C.lastUpdated.toUpperCase()}  ACTIVE FROM: ${C.boardActiveFrom.toUpperCase()}`;
-
-  /* view */
-  let initView; try{initView=localStorage.getItem('tfb-view');}catch(e){}
-  setView(initView||C.defaultView||'detail');
-}
-
-
-
-/* ============================================================
-   LEGACY RENDERER (BL-32) - ES5 compatible, no arrow functions,
-   no const/let, no template literals, no optional chaining
-   ============================================================ */
-
-function legacyFmt(iso) {
-  if (!iso) return '';
-  var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  var parts = iso.split('-');
-  var y = parseInt(parts[0], 10);
-  var m = parseInt(parts[1], 10);
-  var d = parseInt(parts[2], 10);
-  return d + ' ' + months[m-1] + ' ' + y;
-}
-
-function legacyEsc(s) {
-  var d = document.createElement('div');
-  d.appendChild(document.createTextNode(s));
-  return d.innerHTML;
-}
-
-function legacyDaysBetween(a, b) {
-  return Math.round((b.getTime() - a.getTime()) / 86400000);
-}
-
-function legacyAddDays(date, days) {
-  var d = new Date(date.getTime());
-  d.setDate(d.getDate() + days);
-  return d;
-}
-
-function legacyParseDate(iso) {
-  var parts = iso.split('-');
-  return new Date(parseInt(parts[0],10), parseInt(parts[1],10)-1, parseInt(parts[2],10));
-}
-
-function legacyIsoFromDate(d) {
-  var m = String(d.getMonth()+1);
-  var day = String(d.getDate());
-  if (m.length < 2) m = '0' + m;
-  if (day.length < 2) day = '0' + day;
-  return d.getFullYear() + '-' + m + '-' + day;
-}
-
-function legacyCalcScore(C) {
-  var score = C.startingScore || 50;
-  var log = C.eventLog || [];
-  for (var i = 0; i < log.length; i++) {
-    score += (log[i].points || 0);
+function generateAndCommit(field){
+  let block='',outputId='',resultId='',codeElId='',findPat='';
+  if(field==='targets'){
+    const lines=targetStates.map(t=>`    { label: "${t.label.replace(/"/g,'\\"')}",${' '.repeat(Math.max(1,50-t.label.length))}achieved: ${t.achieved} }`).join(',\n');
+    block=`  targets: [\n${lines}\n  ],`;
+    outputId='target-output-section';resultId='api-result-targets';codeElId='target-output-code';
+    findPat='targets:\\s*\\[[\\s\\S]*?\\],';
+  } else if(field==='focus'){
+    const v=el('focus-edit').value.trim().replace(/"/g,'\\"');
+    block=`  currentFocus: "${v}",`;
+    outputId='focus-output-section';resultId='api-result-focus';codeElId='focus-output-code';
+    findPat='currentFocus:\\s*"[^"]*",';
+  } else if(field==='activities'){
+    const lines=activityStates.map(a=>`    { label: "${a.label.replace(/"/g,'\\"')}",${' '.repeat(Math.max(1,28-a.label.length))}active: ${a.active}, suspendReason: "" }`).join(',\n');
+    block=`  highCostActivities: [\n${lines}\n  ],`;
+    outputId='activities-output-section';resultId='api-result-activities';codeElId='activities-output-code';
+    findPat='highCostActivities:\\s*\\[[\\s\\S]*?\\],';
   }
-  if (score < 0) score = 0;
-  if (score > 100) score = 100;
-  return Math.round(score);
+  el(codeElId).textContent=block;
+  el(outputId).classList.add('visible');
+  setTimeout(()=>el(outputId).scrollIntoView({behavior:'smooth',block:'start'}),100);
+  if(githubToken) apiCommitConfig(field,block,findPat,resultId);
 }
 
-function legacyGetBand(score) {
-  if (score <= 20) return { label: 'SUSPENDED',       color: '#c0392b' };
-  if (score <= 40) return { label: 'RESTRICTED',       color: '#d4872a' };
-  if (score <= 60) return { label: 'REBUILDING TRUST', color: '#d4872a' };
-  if (score <= 80) return { label: 'MAKING PROGRESS',  color: '#c8a84a' };
-  return               { label: 'STRONG TRUST',        color: '#3db87a' };
+function copyTo(codeId,confirmId){
+  const text=el(codeId).textContent;
+  navigator.clipboard.writeText(text).then(()=>{el(confirmId).textContent='ok Copied';setTimeout(()=>{el(confirmId).textContent='';},3000);}).catch(()=>{const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);el(confirmId).textContent='ok Copied';});
 }
 
-function legacyGetRawStatus(name, score, suspMap, C) {
-  var override = C.freedomOverrides && C.freedomOverrides[name];
-  var susp = suspMap[name];
-  if (susp && susp.active && !(override && override.overrideStatus)) return 'SUSPENDED';
-  if (override && override.overrideStatus) return override.overrideStatus;
-  var eff = score;
-  if (susp && susp.scoreFloor !== null && susp.scoreFloor !== undefined) {
-    eff = Math.min(score, susp.scoreFloor);
-  }
-  var rules = AUTO_RULES[name] || [];
-  var rule = null;
-  for (var i = 0; i < rules.length; i++) {
-    if (eff <= rules[i].max) { rule = rules[i]; break; }
-  }
-  if (!rule) rule = rules[rules.length - 1];
-  return rule ? rule.status : 'LOCKED';
+function loadHistory(){
+  const raw=el('history-paste').value.trim();let events=[];
+  try{const c=raw.startsWith('[')?raw:'['+raw+']';events=JSON.parse(c);}catch(e){alert('Could not parse.');return;}
+  if(!events.length){alert('No events found.');return;}
+  events.sort((a,b)=>b.date.localeCompare(a.date));
+  const tbody=el('history-tbody');tbody.innerHTML='';
+  events.forEach(e=>{
+    const mn=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const[y,m,d]=e.date.split('-').map(Number);
+    const pCls=e.points>0?'h-pts-pos':e.points<0?'h-pts-neg':'';
+    const pStr=e.points>0?'+'+e.points:e.points===0?'-':''+e.points;
+    const suspTag=e.suspend?'<span style="margin-left:4px;padding:1px 5px;background:var(--suspended-bg);border:1px solid var(--suspended-bdr);border-radius:2px;font-family:var(--mono);font-size:8px;color:var(--suspended)">SUSP</span>':'';
+    const typeTag=e.entryType&&e.entryType!=='event'?`<span style="margin-left:4px;padding:1px 5px;background:var(--surface2);border:1px solid var(--border);border-radius:2px;font-family:var(--mono);font-size:8px;color:var(--text-dim)">${e.entryType.toUpperCase()}</span>`:'';
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td class="h-date">${d+' '+mn[m-1]+' '+y}</td><td>${esc(e.event)}${suspTag}${typeTag}</td><td style="font-family:var(--mono);font-size:10px;color:var(--text-dim)">${esc(e.addedBy||'')}</td><td class="${pCls}">${pStr}</td>`;
+    tbody.appendChild(tr);
+  });
+  el('history-table-wrap').style.display='block';
 }
-
-function legacyCalcSuspensions(eventLog, today) {
-  var m = {};
-  for (var i = 0; i < eventLog.length; i++) {
-    var ev = eventLog[i];
-    if (!ev.suspend) continue;
-    var s = ev.suspend;
-    if (!s.freedom) continue;
-    var start = legacyParseDate(ev.date);
-    var nomEnd = legacyAddDays(start, s.days || 14);
-    var liftD = s.earlyLiftDate ? legacyParseDate(s.earlyLiftDate) : nomEnd;
-    if (s.earlyLiftDate && liftD > nomEnd) liftD = nomEnd;
-    var daysRem = legacyDaysBetween(today, liftD);
-    if (daysRem > 0) {
-      if (!m[s.freedom] || daysRem > m[s.freedom].daysRemaining) {
-        m[s.freedom] = {
-          active: true,
-          daysRemaining: daysRem,
-          liftDate: legacyIsoFromDate(liftD),
-          reason: s.reason || 'Suspended',
-          scoreFloor: s.scoreFloor || null
-        };
-      }
-    }
-  }
-  return m;
-}
-
-function legacyRender() {
-  var renderStart = new Date().getTime();
-  var debugLines = [];
-  var success = false;
-
-  // Clear loading state
-  var loadingEl = document.getElementById('leg-loading');
-  if (loadingEl) loadingEl.style.display = 'none';
-
-  try {
-    var C = CONFIG;
-    var today = new Date();
-    today.setHours(0,0,0,0);
-
-    var score = legacyCalcScore(C);
-    var band = legacyGetBand(score);
-    var suspMap = legacyCalcSuspensions(C.eventLog || [], today);
-
-    // Position
-    var statusEl = document.getElementById('leg-status');
-    var msgEl = document.getElementById('leg-msg');
-    var scoreEl = document.getElementById('leg-score');
-    if (statusEl) { statusEl.textContent = band.label; statusEl.style.color = band.color; }
-    if (msgEl) { msgEl.textContent = C.name + ' - ' + band.label.toLowerCase() + '. Score: ' + score + '/100'; }
-    if (scoreEl) { scoreEl.textContent = score; scoreEl.style.color = band.color; }
-
-    // Freedom statuses
-    var rawStatuses = {};
-    var FREEDOM_LIST = ["Local Daytime", "Evening", "Wider Travel", "Parties", "Sleepovers"];
-    var i, name;
-    for (i = 0; i < FREEDOM_LIST.length; i++) {
-      rawStatuses[FREEDOM_LIST[i]] = legacyGetRawStatus(FREEDOM_LIST[i], score, suspMap, C);
-    }
-
-    // Cascade
-    var freedomStatuses = {};
-    var cascadeBlock = false;
-    for (i = 0; i < FREEDOM_LIST.length; i++) {
-      name = FREEDOM_LIST[i];
-      if (cascadeBlock) {
-        freedomStatuses[name] = 'LOCKED';
-      } else {
-        freedomStatuses[name] = rawStatuses[name];
-        if (rawStatuses[name] === 'SUSPENDED') cascadeBlock = true;
-      }
-    }
-
-    var freeDom = document.getElementById('leg-freedoms');
-    if (freeDom) {
-      var html = '';
-      for (i = 0; i < FREEDOM_LIST.length; i++) {
-        name = FREEDOM_LIST[i];
-        var st = freedomStatuses[name];
-        var cls = 'leg-' + st.toLowerCase();
-        var susp = suspMap[name];
-        var noteText = '';
-        if (susp && susp.active && rawStatuses[name] === 'SUSPENDED') {
-          noteText = susp.reason + ' - ' + susp.daysRemaining + ' days remaining (lifts ' + legacyFmt(susp.liftDate) + ')';
-        } else {
-          var rules = AUTO_RULES[name] || [];
-          for (var r = 0; r < rules.length; r++) {
-            if (score <= rules[r].max) { noteText = rules[r].note || ''; break; }
-          }
-        }
-        html += '<div class="leg-freedom-row">';
-        html += '<span class="leg-freedom-name">' + legacyEsc(name) + '</span>';
-        html += '<span class="leg-badge ' + cls + '">' + legacyEsc(st) + '</span>';
-        if (noteText) html += '<div class="leg-note">' + legacyEsc(noteText) + '</div>';
-        html += '</div>';
-      }
-      freeDom.innerHTML = html;
-    }
-
-    // Suspensions panel
-    var activeSusps = [];
-    for (var fname in suspMap) {
-      if (suspMap[fname] && suspMap[fname].active) {
-        activeSusps.push([fname, suspMap[fname]]);
-      }
-    }
-    var suspSection = document.getElementById('leg-susp-section');
-    var suspEl = document.getElementById('leg-suspensions');
-    if (activeSusps.length > 0 && suspSection && suspEl) {
-      suspSection.style.display = 'block';
-      var shtml = '';
-      for (i = 0; i < activeSusps.length; i++) {
-        var sname = activeSusps[i][0];
-        var sdata = activeSusps[i][1];
-        shtml += '<div class="leg-item">';
-        shtml += '<strong style="color:#c0392b">' + legacyEsc(sname) + '</strong> - ';
-        shtml += legacyEsc(sdata.reason) + '<br>';
-        shtml += '<span style="font-size:11px;color:#884">';
-        shtml += sdata.daysRemaining + ' days remaining - lifts ' + legacyFmt(sdata.liftDate);
-        shtml += '</span></div>';
-      }
-      suspEl.innerHTML = shtml;
-    }
-
-    // Next unlock
-    var unlockEl = document.getElementById('leg-unlock');
-    if (unlockEl) {
-      var target = null;
-      var targetRank = 99;
-      var rankMap = {GRANTED:5, LIMITED:4, REBUILDING:3, LOCKED:2, SUSPENDED:1};
-      for (i = 0; i < FREEDOM_LIST.length; i++) {
-        name = FREEDOM_LIST[i];
-        var fst = freedomStatuses[name];
-        var isSusp = suspMap[name] && suspMap[name].active;
-        if (fst !== 'GRANTED' && !isSusp) {
-          var r2 = rankMap[fst] || 0;
-          if (r2 < targetRank) { targetRank = r2; target = name; }
-        }
-      }
-      if (target) {
-        var rules2 = AUTO_RULES[target] || [];
-        var nextScore = null;
-        for (var ri = 0; ri < rules2.length; ri++) {
-          if (score <= rules2[ri].max) {
-            if (ri + 1 < rules2.length) nextScore = rules2[ri].max + 1;
-            break;
-          }
-        }
-        var utext = target;
-        if (nextScore) utext += ' - needs ' + nextScore + '+ points';
-        unlockEl.textContent = utext;
-      } else {
-        unlockEl.textContent = 'All available freedoms unlocked for current score';
-      }
-    }
-
-    // Focus
-    var focusEl = document.getElementById('leg-focus');
-    if (focusEl) focusEl.textContent = C.currentFocus || '';
-
-    // Wins and setbacks from log
-    var log = C.eventLog || [];
-    var visible = [];
-    for (i = 0; i < log.length; i++) {
-      if (log[i].visible !== false) visible.push(log[i]);
-    }
-    visible.sort(function(a,b) { return b.date < a.date ? -1 : b.date > a.date ? 1 : 0; });
-
-    var wins = [];
-    var setbacks = [];
-    for (i = 0; i < visible.length; i++) {
-      if (visible[i].points > 0 && visible[i].entryType !== 'request') wins.push(visible[i]);
-      else if (visible[i].points < 0) setbacks.push(visible[i]);
-    }
-    wins = wins.slice(0, 6);
-    setbacks = setbacks.slice(0, 6);
-
-    var winsEl = document.getElementById('leg-wins');
-    if (winsEl) {
-      if (wins.length === 0) {
-        winsEl.innerHTML = '<div class="leg-item" style="color:#666;font-style:italic">No wins recorded yet.</div>';
-      } else {
-        var whtml = '';
-        for (i = 0; i < wins.length; i++) {
-          whtml += '<div class="leg-item"><span class="leg-dot-pos">+</span>' + legacyEsc(wins[i].event) + '</div>';
-        }
-        winsEl.innerHTML = whtml;
-      }
-    }
-
-    var setbacksEl = document.getElementById('leg-setbacks');
-    if (setbacksEl) {
-      if (setbacks.length === 0) {
-        setbacksEl.innerHTML = '<div class="leg-item" style="color:#3db87a">No setbacks recorded this period</div>';
-      } else {
-        var sbhtml = '';
-        for (i = 0; i < setbacks.length; i++) {
-          sbhtml += '<div class="leg-item"><span class="leg-dot-neg">-</span>' + legacyEsc(setbacks[i].event) + '</div>';
-        }
-        setbacksEl.innerHTML = sbhtml;
-      }
-    }
-
-    // Trust log
-    var logEl = document.getElementById('leg-log');
-    if (logEl) {
-      var lhtml = '';
-      var logItems = visible.slice(0, 20);
-      for (i = 0; i < logItems.length; i++) {
-        var e = logItems[i];
-        var pStr = e.points > 0 ? '+' + e.points : e.points === 0 ? '-' : '' + e.points;
-        var pColor = e.points > 0 ? '#3db87a' : e.points < 0 ? '#c0392b' : '#666';
-        lhtml += '<tr>';
-        lhtml += '<td style="color:#666;white-space:nowrap;font-size:10px">' + legacyFmt(e.date) + '</td>';
-        lhtml += '<td>' + legacyEsc(e.event) + '</td>';
-        lhtml += '<td style="color:' + pColor + ';font-weight:bold;text-align:right">' + pStr + '</td>';
-        lhtml += '</tr>';
-      }
-      logEl.innerHTML = lhtml;
-    }
-
-    // Targets
-    var targetsEl = document.getElementById('leg-targets');
-    if (targetsEl) {
-      var thtml = '';
-      var targets = C.targets || [];
-      for (i = 0; i < targets.length; i++) {
-        var t = targets[i];
-        var tColor = t.achieved ? '#3db87a' : '#aaa';
-        var tMark = t.achieved ? '[ok] ' : '[ ] ';
-        thtml += '<div class="leg-item" style="color:' + tColor + '">' + tMark + legacyEsc(t.label) + '</div>';
-      }
-      targetsEl.innerHTML = thtml;
-    }
-
-    success = true;
-    debugLines.push('render: legacy');
-    debugLines.push('status: success');
-    debugLines.push('score: ' + score);
-    debugLines.push('entries: ' + (C.eventLog || []).length);
-
-  } catch(err) {
-    success = false;
-    debugLines.push('render: legacy');
-    debugLines.push('status: FAILED - ' + (err.message || 'unknown error'));
-    var errEl = document.getElementById('leg-error-msg');
-    var contEl = document.getElementById('leg-content');
-    if (errEl) errEl.style.display = 'block';
-    if (contEl) contEl.style.display = 'none';
-  }
-
-  var renderTime = new Date().getTime() - renderStart;
-  debugLines.push('time: ' + renderTime + 'ms');
-  debugLines.push('ua: ' + (navigator.userAgent || 'unknown').substring(0, 100));
-  if (window.__TFB_LEGACY_REASONS && window.__TFB_LEGACY_REASONS.length) {
-    debugLines.push('legacy-flags: ' + window.__TFB_LEGACY_REASONS.join(', '));
-  }
-
-  var debugEl = document.getElementById('leg-debug');
-  if (debugEl) debugEl.innerHTML = debugLines.join('<br>');
-
-  return success;
-}
-
-/* ============================================================
-   RENDER ROUTING - decides modern vs legacy path
-   ============================================================ */
-function routeRender() {
-  var legacyBoard = document.getElementById('legacy-board');
-  var mainPage    = document.getElementById('page-root');
-  var legBanner   = document.getElementById('leg-banner');
-
-  if (window.__TFB_LEGACY) {
-    // Legacy path - board already visible by default, just show banner and render
-    if (legBanner) legBanner.style.display = 'block';
-    if (mainPage)  mainPage.style.display  = 'none';
-    legacyRender();
-  } else {
-    // Attempt modern render
-    try {
-      render();
-      // Modern render succeeded - swap display
-      if (legacyBoard) legacyBoard.style.display = 'none';
-      if (mainPage)    mainPage.style.display     = 'block';
-    } catch(e) {
-      // Modern render failed - stay on legacy, show banner
-      window.__TFB_LEGACY = true;
-      window.__TFB_LEGACY_REASONS = (window.__TFB_LEGACY_REASONS || []).concat(['modern-render-failed: ' + (e.message || 'unknown')]);
-      if (legBanner) legBanner.style.display = 'block';
-      if (mainPage)  mainPage.style.display  = 'none';
-      legacyRender();
-    }
-  }
-}
-
-
-routeRender();
-window.addEventListener('resize',()=>{updateCarousel();});
 </script>
 </body>
 </html>

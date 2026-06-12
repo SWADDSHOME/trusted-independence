@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<!-- TRUST & FREEDOM BOARD v1.04 | 12 June 2026 -->
+<!-- TRUST & FREEDOM BOARD v1.04c | 12 June 2026 -->
 
 <script>
 /* Legacy browser detection - runs before anything else - ES5 only */
@@ -56,7 +56,7 @@
 <script>
 /* ============================================================
    TRUST & FREEDOM BOARD
-   Version: 1.04
+   Version: 1.04c
    Last updated: 5 June 2026
    ============================================================
    PARENT CONFIGURATION -- EDIT THIS SECTION ONLY
@@ -141,51 +141,7 @@ const CONFIG = {
 
 </script>
 
-<!-- ES5 LEGACY DATA BRIDGE - var syntax only, iOS 10 safe -->
-<script>
-(function() {
-  var src = (typeof CONFIG !== 'undefined') ? CONFIG : null;
-  window.__TFB_DATA = {
-    name:            src ? src.name            : "Vaughan",
-    lastUpdated:     src ? src.lastUpdated      : "5 June 2026",
-    boardActiveFrom: src ? src.boardActiveFrom  : "5 June 2026",
-    startingScore:   src ? (src.startingScore || 30) : 30,
-    startingNote:    src ? src.startingNote     : "This board starts from today.",
-    currentFocus:    src ? src.currentFocus     : "Add this week's focus via the Integrity Update form.",
-    defaultView:     src ? src.defaultView      : "overview",
-    targets: src ? (src.targets || []) : [
-      { label: "No Detentions",                                      achieved: false },
-      { label: "On Time to School",                                  achieved: false },
-      { label: "Merit Award",                                        achieved: false },
-      { label: "Positive / Great School Report",                     achieved: false },
-      { label: "Positive feedback from a teacher or trusted adult",  achieved: false }
-    ],
-    highCostActivities: src ? (src.highCostActivities || []) : [
-      { label: "Sunday Football Team",   active: true },
-      { label: "Saturday Football Team", active: true },
-      { label: "Work Experience",        active: true },
-      { label: "Job",                    active: true },
-      { label: "Dog Walking",            active: true }
-    ],
-    nextUnlockBehaviours: src ? (src.nextUnlockBehaviours || []) : [
-      "Honest communication - tell us before we find out",
-      "No hidden vaping or substance use",
-      "No school incidents or behaviour concerns",
-      "Keep agreed curfews without reminders",
-      "Contact us if plans change"
-    ],
-    freedomOverrides: src ? (src.freedomOverrides || {}) : {
-      "Local Daytime": { overrideStatus: null },
-      "Evening":       { overrideStatus: null },
-      "Wider Travel":  { overrideStatus: null },
-      "Parties":       { overrideStatus: null },
-      "Sleepovers":    { overrideStatus: null }
-    },
-    eventLog: src ? (src.eventLog || []) : []
-  };
-  window.__TFB_DATA_SOURCE = src ? 'CONFIG' : 'HARDCODED';
-})();
-</script>
+
 
 
 <style>
@@ -658,7 +614,7 @@ const CONFIG = {
 
 
 <!-- Version label -->
-<div id="tfb-version-label" style="position:fixed;bottom:4px;right:8px;font-size:9px;color:#333;font-family:monospace;letter-spacing:1px;z-index:9999;pointer-events:none;opacity:0.6">v1.04</div>
+<div id="tfb-version-label" style="position:fixed;bottom:4px;right:8px;font-size:9px;color:#333;font-family:monospace;letter-spacing:1px;z-index:9999;pointer-events:none;opacity:0.6">v1.04c</div>
 <div class="page" id="page-root" style="display:none">
 
   <!-- 1 POSITION BANNER - all views -->
@@ -870,6 +826,10 @@ const CONFIG = {
 </div><!-- /page -->
 
 <script>
+/* ============================================================
+   TRUST & FREEDOM BOARD - MODERN RENDER (ES2015+)
+   iOS 11+, Chrome 60+, Firefox 55+
+   ============================================================ */
 /* - helpers - */
 function el(id){return document.getElementById(id);}
 function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
@@ -1412,7 +1372,7 @@ function render(){
   el('tb-name').textContent   =C.name+"'s Board";
   el('tb-score').textContent  =score;
   el('tb-updated').textContent="Updated "+C.lastUpdated;
-  var tbv=el('tb-version'); if(tbv) tbv.textContent='v1.04';
+  var tbv=el('tb-version'); if(tbv) tbv.textContent='v1.04c';
 
   /* 1 position */
   const pi=el('pos-icon');
@@ -1486,6 +1446,62 @@ function render(){
 }
 
 
+
+/* ====
+</script>
+
+<!-- ES5 LEGACY DATA BRIDGE + LEGACY RENDERER - var syntax only, iOS 10 safe -->
+<script>
+/* ============================================================
+   ES5-ONLY BLOCK - NO const/let/arrow functions/template literals
+   Safe for iOS 10.3.3 (Safari on A7/A8 devices)
+   Contains: __TFB_DATA bridge, legacyRender, legacySafeText,
+             legacyFmtDate, routeRender, and app init bootstrap
+   ============================================================ */
+
+/* DATA BRIDGE */
+(function() {
+  var src = (typeof CONFIG !== 'undefined') ? CONFIG : null;
+  window.__TFB_DATA = {
+    name:            src ? src.name            : "Vaughan",
+    lastUpdated:     src ? src.lastUpdated      : "5 June 2026",
+    boardActiveFrom: src ? src.boardActiveFrom  : "5 June 2026",
+    startingScore:   src ? (src.startingScore || 30) : 30,
+    startingNote:    src ? src.startingNote     : "This board starts from today.",
+    currentFocus:    src ? src.currentFocus     : "Add this week's focus via the Integrity Update form.",
+    defaultView:     src ? src.defaultView      : "overview",
+    targets: src ? (src.targets || []) : [
+      { label: "No Detentions",                                      achieved: false },
+      { label: "On Time to School",                                  achieved: false },
+      { label: "Merit Award",                                        achieved: false },
+      { label: "Positive / Great School Report",                     achieved: false },
+      { label: "Positive feedback from a teacher or trusted adult",  achieved: false }
+    ],
+    highCostActivities: src ? (src.highCostActivities || []) : [
+      { label: "Sunday Football Team",   active: true },
+      { label: "Saturday Football Team", active: true },
+      { label: "Work Experience",        active: true },
+      { label: "Job",                    active: true },
+      { label: "Dog Walking",            active: true }
+    ],
+    nextUnlockBehaviours: src ? (src.nextUnlockBehaviours || []) : [
+      "Honest communication - tell us before we find out",
+      "No hidden vaping or substance use",
+      "No school incidents or behaviour concerns",
+      "Keep agreed curfews without reminders",
+      "Contact us if plans change"
+    ],
+    freedomOverrides: src ? (src.freedomOverrides || {}) : {
+      "Local Daytime": { overrideStatus: null },
+      "Evening":       { overrideStatus: null },
+      "Wider Travel":  { overrideStatus: null },
+      "Parties":       { overrideStatus: null },
+      "Sleepovers":    { overrideStatus: null }
+    },
+    eventLog: src ? (src.eventLog || []) : []
+  };
+  window.__TFB_DATA_SOURCE = src ? 'CONFIG' : 'HARDCODED';
+})();
 
 /* ============================================================
    LEGACY RENDERER (BL-32) - ES5 compatible, no arrow functions,
@@ -1946,12 +1962,10 @@ function routeRender() {
     }
   }
 }
-
-
 /* ============================================================
    APP VERSION + CONSOLE LOG + INIT
    ============================================================ */
-var APP_VERSION = 'v1.04';
+var APP_VERSION = 'v1.04c';
 var RENDER_MODE = window.__TFB_LEGACY ? 'legacy' : 'modern';
 var LAST_UPDATED = (typeof CONFIG !== 'undefined' && CONFIG.lastUpdated) ? CONFIG.lastUpdated : 'unknown';
 

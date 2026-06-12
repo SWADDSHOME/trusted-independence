@@ -1996,5 +1996,42 @@ if (window.addEventListener) {
   });
 }
 </script>
+
+<!-- GUARANTEED INIT - plain inline script, no events, iOS 10 safe -->
+<script>
+(function() {
+  if (typeof tfbRendered !== 'undefined' && tfbRendered) { return; }
+  var isLeg = (typeof window.__TFB_LEGACY !== 'undefined') && window.__TFB_LEGACY;
+  var lb = document.getElementById('legacy-board');
+  var mp = document.getElementById('page-root');
+  var bn = document.getElementById('leg-banner');
+  var ld = document.getElementById('leg-loading');
+  if (isLeg) {
+    if (lb) lb.style.display = 'block';
+    if (mp) mp.style.display = 'none';
+    if (bn) bn.style.display = 'block';
+    if (ld) ld.style.display = 'none';
+    if (typeof legacyRender === 'function') {
+      legacyRender();
+    } else {
+      var st = document.getElementById('leg-status');
+      if (st) { st.innerHTML = 'Render unavailable - please refresh'; st.style.color = '#c0392b'; }
+    }
+  } else {
+    try {
+      if (typeof render === 'function') render();
+      if (mp) mp.style.display = 'block';
+      if (lb) lb.style.display = 'none';
+    } catch(e) {
+      if (mp) mp.style.display = 'none';
+      if (lb) lb.style.display = 'block';
+      if (bn) bn.style.display = 'block';
+      if (ld) ld.style.display = 'none';
+      if (typeof legacyRender === 'function') legacyRender();
+    }
+  }
+  if (typeof tfbRendered !== 'undefined') tfbRendered = true;
+})();
+</script>
 </body>
 </html>

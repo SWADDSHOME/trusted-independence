@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<!-- TRUST & FREEDOM BOARD v1.04c | 12 June 2026 -->
+<!-- TRUST & FREEDOM BOARD v1.04d | 12 June 2026 -->
 
 <script>
 /* Legacy browser detection - runs before anything else - ES5 only */
@@ -56,7 +56,7 @@
 <script>
 /* ============================================================
    TRUST & FREEDOM BOARD
-   Version: 1.04c
+   Version: 1.04d
    Last updated: 5 June 2026
    ============================================================
    PARENT CONFIGURATION -- EDIT THIS SECTION ONLY
@@ -614,7 +614,7 @@ const CONFIG = {
 
 
 <!-- Version label -->
-<div id="tfb-version-label" style="position:fixed;bottom:4px;right:8px;font-size:9px;color:#333;font-family:monospace;letter-spacing:1px;z-index:9999;pointer-events:none;opacity:0.6">v1.04c</div>
+<div id="tfb-version-label" style="position:fixed;bottom:4px;right:8px;font-size:9px;color:#333;font-family:monospace;letter-spacing:1px;z-index:9999;pointer-events:none;opacity:0.6">v1.04d</div>
 <div class="page" id="page-root" style="display:none">
 
   <!-- 1 POSITION BANNER - all views -->
@@ -1372,7 +1372,7 @@ function render(){
   el('tb-name').textContent   =C.name+"'s Board";
   el('tb-score').textContent  =score;
   el('tb-updated').textContent="Updated "+C.lastUpdated;
-  var tbv=el('tb-version'); if(tbv) tbv.textContent='v1.04c';
+  var tbv=el('tb-version'); if(tbv) tbv.textContent='v1.04d';
 
   /* 1 position */
   const pi=el('pos-icon');
@@ -1965,7 +1965,7 @@ function routeRender() {
 /* ============================================================
    APP VERSION + CONSOLE LOG + INIT
    ============================================================ */
-var APP_VERSION = 'v1.04c';
+var APP_VERSION = 'v1.04d';
 var RENDER_MODE = window.__TFB_LEGACY ? 'legacy' : 'modern';
 var LAST_UPDATED = (typeof CONFIG !== 'undefined' && CONFIG.lastUpdated) ? CONFIG.lastUpdated : 'unknown';
 
@@ -1980,26 +1980,8 @@ try {
   console.log('[TFB] version=' + APP_VERSION + ' mode=' + RENDER_MODE + ' updated=' + LAST_UPDATED + ' ua=' + (navigator.userAgent || '').substring(0, 80));
 } catch(e) {}
 
-/* DOMContentLoaded + window.onload fallback for old Safari / iOS 10 */
+/* tfbRendered flag - set by guaranteed init block below, guards against double render */
 var tfbRendered = false;
-function tfbInit() {
-  if (tfbRendered) return;
-  tfbRendered = true;
-  routeRender();
-}
-
-if (document.readyState === 'complete' || document.readyState === 'interactive') {
-  tfbInit();
-} else if (document.addEventListener) {
-  document.addEventListener('DOMContentLoaded', tfbInit);
-} else if (document.attachEvent) {
-  document.attachEvent('onreadystatechange', function() {
-    if (document.readyState === 'complete') tfbInit();
-  });
-}
-
-/* Belt-and-braces window.onload fallback */
-window.onload = function() { tfbInit(); };
 
 /* Resize handler - modern only */
 if (window.addEventListener) {

@@ -2,43 +2,50 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<!-- TRUST & FREEDOM BOARD v1.02 | 12 June 2026 -->
+<!-- TRUST & FREEDOM BOARD v1.03 | 12 June 2026 -->
 
 <script>
-/* Legacy browser detection - runs before anything else */
+/* Legacy browser detection - runs before anything else - ES5 only */
 (function() {
   var isLegacy = false;
   var reasons = [];
+  var ua = navigator.userAgent || '';
 
-  // Test for features required by modern path
-  try {
-    // Test const/let
-    eval('const __t=1;let __u=2;');
-  } catch(e) { isLegacy = true; reasons.push('no-const-let'); }
+  // UA-based detection first (most reliable for iOS 10)
+  // iOS 10 = Version/10. in Safari UA
+  var iosMatch = ua.match(/OS (\d+)_/);
+  if (iosMatch && parseInt(iosMatch[1], 10) < 11) {
+    isLegacy = true;
+    reasons.push('ios-' + iosMatch[1]);
+  }
 
-  try {
-    // Test arrow functions
-    eval('var __f = () => 1;');
-  } catch(e) { isLegacy = true; reasons.push('no-arrow'); }
+  // Also catch old Android WebKit
+  if (ua.indexOf('Android') > -1 && ua.indexOf('Chrome') === -1) {
+    var androidMatch = ua.match(/Android (\d+)/);
+    if (androidMatch && parseInt(androidMatch[1], 10) < 6) {
+      isLegacy = true;
+      reasons.push('android-old');
+    }
+  }
 
-  try {
-    // Test template literals
-    eval('var __s = `test`;');
-  } catch(e) { isLegacy = true; reasons.push('no-template-literals'); }
+  // Feature detection as secondary check
+  try { eval('const __t=1;'); } catch(e) { isLegacy = true; reasons.push('no-const'); }
+  try { eval('var __f = () => 1;'); } catch(e) { isLegacy = true; reasons.push('no-arrow'); }
+  try { eval('var __s = `t`;'); } catch(e) { isLegacy = true; reasons.push('no-template'); }
 
+  // CSS vars
   try {
-    // Test CSS custom properties support
-    if (!window.CSS || !window.CSS.supports || !window.CSS.supports('color', 'var(--test)')) {
+    if (!window.CSS || !window.CSS.supports || !window.CSS.supports('color', 'var(--t)')) {
       isLegacy = true; reasons.push('no-css-vars');
     }
-  } catch(e) { isLegacy = true; reasons.push('no-css-check'); }
+  } catch(e) { isLegacy = true; reasons.push('css-check-err'); }
 
-  // Test Promise
+  // Promise
   if (typeof Promise === 'undefined') { isLegacy = true; reasons.push('no-promise'); }
 
   window.__TFB_LEGACY = isLegacy;
   window.__TFB_LEGACY_REASONS = reasons;
-  window.__TFB_UA = navigator.userAgent || 'unknown';
+  window.__TFB_UA = ua;
 })();
 </script>
 
@@ -49,7 +56,7 @@
 <script>
 /* ============================================================
    TRUST & FREEDOM BOARD
-   Version: 1.02
+   Version: 1.03
    Last updated: 5 June 2026
    ============================================================
    PARENT CONFIGURATION -- EDIT THIS SECTION ONLY
@@ -168,7 +175,7 @@ const CONFIG = {
 
   * { box-sizing:border-box; margin:0; padding:0; }
   html { scroll-behavior:smooth; }
-  body { background:var(--bg); color:var(--text); font-family:'Barlow',Arial,sans-serif; font-size:15px; line-height:1.5; min-height:100vh; }
+  body { background:#1a1a1c; color:#e6e2d6; font-family:'Barlow',Arial,sans-serif; font-size:15px; line-height:1.5; min-height:100vh; }
 
   /* - TOPBAR - */
   .topbar { background:#111; border-bottom:3px solid var(--gold); padding:0 20px; display:flex; align-items:center; justify-content:space-between; height:54px; position:sticky; top:0; z-index:100; gap:12px; }
@@ -464,7 +471,7 @@ const CONFIG = {
   }
 
   /* Legacy rendering path */
-  .legacy-board { display:none; font-family:Arial,sans-serif; padding:12px; background:#1a1a1c; color:#e6e2d6; }
+  .legacy-board { display:block; font-family:Arial,sans-serif; padding:12px; background:#1a1a1c; color:#e6e2d6; }
   .leg-section { margin-bottom:16px; padding:12px; background:#232326; border:1px solid #38383c; border-radius:3px; }
   .leg-title { font-size:11px; letter-spacing:3px; text-transform:uppercase; color:#6e5c28; margin-bottom:8px; font-weight:bold; }
   .leg-status { font-size:24px; font-weight:bold; letter-spacing:2px; margin-bottom:4px; }
@@ -524,8 +531,12 @@ const CONFIG = {
 </div>
 
 
-<!-- LEGACY BOARD - shown on iOS 10 / old WebKit only -->
+<!-- LEGACY BOARD - visible by default, hidden after modern render succeeds -->
 <div class="legacy-board" id="legacy-board">
+  <div id="leg-banner" style="background:#2a1a08;border:1px solid #c8a84a;border-radius:3px;padding:8px 14px;margin-bottom:14px;font-family:Arial,sans-serif;font-size:12px;color:#c8a84a;letter-spacing:2px;text-transform:uppercase;display:none">
+    Legacy iPad Mode
+  </div>
+  <div id="leg-loading" style="padding:20px;color:#666;font-family:Arial,sans-serif;font-size:14px">Loading board...</div>
   <div id="leg-error-msg" class="leg-error" style="display:none">
     Legacy display mode could not load. Please refresh or try another device.
   </div>
@@ -586,7 +597,7 @@ const CONFIG = {
   <div class="leg-debug" id="leg-debug"></div>
 </div>
 
-<div class="page" id="page-root">
+<div class="page" id="page-root" style="display:none">
 
   <!-- 1 POSITION BANNER - all views -->
   <div class="position-banner an d1" id="position-banner">
@@ -1526,6 +1537,10 @@ function legacyRender() {
   var debugLines = [];
   var success = false;
 
+  // Clear loading state
+  var loadingEl = document.getElementById('leg-loading');
+  if (loadingEl) loadingEl.style.display = 'none';
+
   try {
     var C = CONFIG;
     var today = new Date();
@@ -1759,27 +1774,28 @@ function legacyRender() {
    RENDER ROUTING - decides modern vs legacy path
    ============================================================ */
 function routeRender() {
+  var legacyBoard = document.getElementById('legacy-board');
+  var mainPage    = document.getElementById('page-root');
+  var legBanner   = document.getElementById('leg-banner');
+
   if (window.__TFB_LEGACY) {
-    // Legacy path
-    var legacyBoard = document.getElementById('legacy-board');
-    var mainPage = document.getElementById('page-root');
-    var topbar = document.querySelector('.topbar');
-    if (legacyBoard) legacyBoard.style.display = 'block';
-    if (mainPage) mainPage.style.display = 'none';
+    // Legacy path - board already visible by default, just show banner and render
+    if (legBanner) legBanner.style.display = 'block';
+    if (mainPage)  mainPage.style.display  = 'none';
     legacyRender();
   } else {
-    // Modern path
-    var legacyBoard2 = document.getElementById('legacy-board');
-    if (legacyBoard2) legacyBoard2.style.display = 'none';
+    // Attempt modern render
     try {
       render();
+      // Modern render succeeded - swap display
+      if (legacyBoard) legacyBoard.style.display = 'none';
+      if (mainPage)    mainPage.style.display     = 'block';
     } catch(e) {
-      // Modern render failed - try legacy as fallback
-      var legBd = document.getElementById('legacy-board');
-      var mainPg = document.getElementById('page-root');
-      if (legBd) legBd.style.display = 'block';
-      if (mainPg) mainPg.style.display = 'none';
+      // Modern render failed - stay on legacy, show banner
       window.__TFB_LEGACY = true;
+      window.__TFB_LEGACY_REASONS = (window.__TFB_LEGACY_REASONS || []).concat(['modern-render-failed: ' + (e.message || 'unknown')]);
+      if (legBanner) legBanner.style.display = 'block';
+      if (mainPage)  mainPage.style.display  = 'none';
       legacyRender();
     }
   }

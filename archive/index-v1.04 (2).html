@@ -1,0 +1,2037 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!-- TRUST & FREEDOM BOARD v1.04 | 12 June 2026 -->
+
+<script>
+/* Legacy browser detection - runs before anything else - ES5 only */
+(function() {
+  var isLegacy = false;
+  var reasons = [];
+  var ua = navigator.userAgent || '';
+
+  // UA-based detection first (most reliable for iOS 10)
+  // iOS 10 = Version/10. in Safari UA
+  var iosMatch = ua.match(/OS (\d+)_/);
+  if (iosMatch && parseInt(iosMatch[1], 10) < 11) {
+    isLegacy = true;
+    reasons.push('ios-' + iosMatch[1]);
+  }
+
+  // Also catch old Android WebKit
+  if (ua.indexOf('Android') > -1 && ua.indexOf('Chrome') === -1) {
+    var androidMatch = ua.match(/Android (\d+)/);
+    if (androidMatch && parseInt(androidMatch[1], 10) < 6) {
+      isLegacy = true;
+      reasons.push('android-old');
+    }
+  }
+
+  // Feature detection as secondary check
+  try { eval('const __t=1;'); } catch(e) { isLegacy = true; reasons.push('no-const'); }
+  try { eval('var __f = () => 1;'); } catch(e) { isLegacy = true; reasons.push('no-arrow'); }
+  try { eval('var __s = `t`;'); } catch(e) { isLegacy = true; reasons.push('no-template'); }
+
+  // CSS vars
+  try {
+    if (!window.CSS || !window.CSS.supports || !window.CSS.supports('color', 'var(--t)')) {
+      isLegacy = true; reasons.push('no-css-vars');
+    }
+  } catch(e) { isLegacy = true; reasons.push('css-check-err'); }
+
+  // Promise
+  if (typeof Promise === 'undefined') { isLegacy = true; reasons.push('no-promise'); }
+
+  window.__TFB_LEGACY = isLegacy;
+  window.__TFB_LEGACY_REASONS = reasons;
+  window.__TFB_UA = ua;
+})();
+</script>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Trust &amp; Freedom Board - Vaughan</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Barlow:ital,wght@0,400;0,500;0,600;1,400&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+
+<script>
+/* ============================================================
+   TRUST & FREEDOM BOARD
+   Version: 1.04
+   Last updated: 5 June 2026
+   ============================================================
+   PARENT CONFIGURATION -- EDIT THIS SECTION ONLY
+   ============================================================
+   Use the Integrity Update form to generate entries for eventLog.
+   Targets, Focus and Activities can also be updated via the form.
+
+   TWO-TRACK SYSTEM:
+   Track 1 -- SCORE: startingScore + sum of all event points (0-100)
+   Track 2 -- SUSPENSIONS: timed freedom locks, independent of score
+
+   defaultView: "overview" | "detail" | "custom"
+   ============================================================ */
+
+const CONFIG = {
+
+  /* - IDENTITY ----------------------------- */
+  name:            "Vaughan",
+  lastUpdated:     "5 June 2026",
+  boardActiveFrom: "5 June 2026",
+  defaultView:     "overview",
+
+  /* - STARTING SCORE (0-100) ---------------------- */
+  startingScore: 30,
+
+  /* - STARTING NOTE - shown in Board Context (detail view bottom) --- */
+  startingNote: "This board starts from today - 5 June 2026. It is a forward-looking record. The starting position reflects where things are honestly. Everything from here is built through behaviour and choices.",
+
+  /* - THIS WEEK'S FOCUS - updatable via Integrity Update form ----- */
+  currentFocus: "Add this week's focus via the Integrity Update form.",
+
+  /* - TARGETS - updatable via Integrity Update form ----------
+     achieved: false = in progress  |  achieved: true = completed
+  ------------------------------------ */
+  targets: [
+    { label: "No Detentions",                                        achieved: false },
+    { label: "On Time to School",                                    achieved: false },
+    { label: "Merit Award",                                          achieved: false },
+    { label: "Positive / Great School Report",                       achieved: false },
+    { label: "Positive feedback from a teacher or trusted adult",    achieved: false }
+  ],
+
+  /* - IMPORTANT ACTIVITIES - updatable via Integrity Update form ----
+     active: true = currently available
+     active: false = currently suspended
+  ------------------------------------ */
+  highCostActivities: [
+    { label: "Sunday Football Team",   active: true,  suspendReason: "" },
+    { label: "Saturday Football Team", active: true,  suspendReason: "" },
+    { label: "Work Experience",        active: true,  suspendReason: "" },
+    { label: "Job",                    active: true,  suspendReason: "" },
+    { label: "Dog Walking",            active: true,  suspendReason: "" }
+  ],
+
+  /* - NEXT UNLOCK BEHAVIOURS ---------------------- */
+  nextUnlockBehaviours: [
+    "Honest communication - tell us before we find out",
+    "No hidden vaping or substance use",
+    "No school incidents or behaviour concerns",
+    "Keep agreed curfews without reminders",
+    "Contact us if plans change"
+  ],
+
+  /* - FREEDOM OVERRIDES - null = auto-calculated from score ------
+     overrideStatus options: "GRANTED" | "LIMITED" | "REBUILDING" | "LOCKED" | "SUSPENDED"
+  ------------------------------------ */
+  freedomOverrides: {
+    "Local Daytime": { overrideStatus: null, overrideNote: "" },
+    "Evening":       { overrideStatus: null, overrideNote: "" },
+    "Wider Travel":  { overrideStatus: null, overrideNote: "" },
+    "Parties":       { overrideStatus: null, overrideNote: "" },
+    "Sleepovers":    { overrideStatus: null, overrideNote: "" }
+  },
+
+  /* - EVENT LOG -----------------------------
+     Managed via Integrity Update form. Do not edit manually.
+     points: +/-3/6/9/12/15 (or 0 for diary/request entries)
+     entryType: "event" | "request" | "diary"
+  ------------------------------------ */
+  eventLog: []
+};
+
+</script>
+
+<!-- ES5 LEGACY DATA BRIDGE - var syntax only, iOS 10 safe -->
+<script>
+(function() {
+  var src = (typeof CONFIG !== 'undefined') ? CONFIG : null;
+  window.__TFB_DATA = {
+    name:            src ? src.name            : "Vaughan",
+    lastUpdated:     src ? src.lastUpdated      : "5 June 2026",
+    boardActiveFrom: src ? src.boardActiveFrom  : "5 June 2026",
+    startingScore:   src ? (src.startingScore || 30) : 30,
+    startingNote:    src ? src.startingNote     : "This board starts from today.",
+    currentFocus:    src ? src.currentFocus     : "Add this week's focus via the Integrity Update form.",
+    defaultView:     src ? src.defaultView      : "overview",
+    targets: src ? (src.targets || []) : [
+      { label: "No Detentions",                                      achieved: false },
+      { label: "On Time to School",                                  achieved: false },
+      { label: "Merit Award",                                        achieved: false },
+      { label: "Positive / Great School Report",                     achieved: false },
+      { label: "Positive feedback from a teacher or trusted adult",  achieved: false }
+    ],
+    highCostActivities: src ? (src.highCostActivities || []) : [
+      { label: "Sunday Football Team",   active: true },
+      { label: "Saturday Football Team", active: true },
+      { label: "Work Experience",        active: true },
+      { label: "Job",                    active: true },
+      { label: "Dog Walking",            active: true }
+    ],
+    nextUnlockBehaviours: src ? (src.nextUnlockBehaviours || []) : [
+      "Honest communication - tell us before we find out",
+      "No hidden vaping or substance use",
+      "No school incidents or behaviour concerns",
+      "Keep agreed curfews without reminders",
+      "Contact us if plans change"
+    ],
+    freedomOverrides: src ? (src.freedomOverrides || {}) : {
+      "Local Daytime": { overrideStatus: null },
+      "Evening":       { overrideStatus: null },
+      "Wider Travel":  { overrideStatus: null },
+      "Parties":       { overrideStatus: null },
+      "Sleepovers":    { overrideStatus: null }
+    },
+    eventLog: src ? (src.eventLog || []) : []
+  };
+  window.__TFB_DATA_SOURCE = src ? 'CONFIG' : 'HARDCODED';
+})();
+</script>
+
+
+<style>
+  :root {
+    --bg:            #1a1a1c;
+    --surface:       #232326;
+    --surface2:      #2a2a2e;
+    --border:        #38383c;
+    --gold:          #c8a84a;
+    --gold-dim:      #6e5c28;
+    --text:          #e6e2d6;
+    --text-mid:      #aaa9a0;
+    --text-dim:      #666;
+    --mono:          'Share Tech Mono', monospace;
+    --granted:       #3db87a;
+    --granted-bg:    #152a1e;
+    --granted-bdr:   #1e4a30;
+    --limited:       #5b9bd5;
+    --limited-bg:    #0e1e30;
+    --limited-bdr:   #1a3550;
+    --rebuilding:    #d4872a;
+    --rebuilding-bg: #2a1a08;
+    --rebuilding-bdr:#4a3010;
+    --locked:        #777;
+    --locked-bg:     #1e1e20;
+    --locked-bdr:    #333;
+    --suspended:     #c0392b;
+    --suspended-bg:  #280a08;
+    --suspended-bdr: #5a1010;
+    --req-pending:   #c8a84a;
+    --req-approved:  #3db87a;
+    --req-declined:  #555;
+    --req-clash:     #c0392b;
+  }
+
+  * { box-sizing:border-box; margin:0; padding:0; }
+  html { scroll-behavior:smooth; }
+  body { background:#1a1a1c; color:#e6e2d6; font-family:'Barlow',Arial,sans-serif; font-size:15px; line-height:1.5; min-height:100vh; }
+
+  /* - TOPBAR - */
+  .topbar { background:#111; border-bottom:3px solid var(--gold); padding:0 20px; display:flex; align-items:center; justify-content:space-between; height:54px; position:sticky; top:0; z-index:100; gap:12px; }
+  .topbar-left { display:flex; align-items:center; gap:14px; }
+  .topbar-title { font-family:'Rajdhani',Arial,sans-serif; font-size:17px; font-weight:700; letter-spacing:4px; color:var(--gold); text-transform:uppercase; white-space:nowrap; }
+  .topbar-name  { font-family:'Rajdhani',Arial,sans-serif; font-size:13px; font-weight:600; color:var(--text-dim); letter-spacing:2px; text-transform:uppercase; white-space:nowrap; }
+  .topbar-right { display:flex; align-items:center; gap:10px; }
+  .topbar-score { font-family:var(--mono); font-size:11px; color:var(--text-dim); }
+  .topbar-score span { font-weight:700; color:var(--gold); }
+  .topbar-updated { font-family:var(--mono); font-size:10px; color:var(--text-dim); white-space:nowrap; }
+  .view-toggle { display:flex; border:1px solid var(--border); border-radius:3px; overflow:hidden; }
+  .view-btn { background:none; border:none; color:var(--text-dim); padding:5px 11px; cursor:pointer; font-family:'Rajdhani',Arial,sans-serif; font-size:11px; font-weight:600; letter-spacing:2px; text-transform:uppercase; transition:all 0.15s; border-right:1px solid var(--border); }
+  .view-btn:last-child { border-right:none; }
+  .view-btn.active { background:var(--gold); color:#111; }
+  .view-btn:hover:not(.active) { color:var(--gold); }
+  .print-btn { background:none; border:1px solid var(--border); color:var(--text-dim); padding:5px 12px; border-radius:3px; cursor:pointer; font-family:'Rajdhani',Arial,sans-serif; font-size:11px; font-weight:600; letter-spacing:2px; text-transform:uppercase; transition:all 0.15s; }
+  .print-btn:hover { border-color:var(--gold); color:var(--gold); }
+
+  /* - LAYOUT - */
+  .page { max-width:920px; margin:0 auto; padding:20px 16px 60px; }
+  .section-label { font-family:'Rajdhani',Arial,sans-serif; font-size:10px; font-weight:700; letter-spacing:4px; text-transform:uppercase; color:var(--gold-dim); border-left:3px solid var(--gold-dim); padding-left:10px; margin-bottom:12px; }
+  .card { background:var(--surface); border:1px solid var(--border); border-radius:3px; padding:18px; }
+  .gap { margin-bottom:18px; }
+  .two-col { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:18px; align-items:start; }
+
+  /* - VIEW PANELS - */
+  .view-overview, .view-detail, .view-custom { display:none; }
+  .show-overview .view-overview { display:block; }
+  .show-detail   .view-detail   { display:block; }
+  .show-custom   .view-custom   { display:block; }
+
+  /* - 1 POSITION BANNER - */
+  .position-banner { background:var(--surface); border:1px solid var(--border); border-radius:3px; padding:22px 20px 18px; margin-bottom:18px; display:grid; grid-template-columns:auto 1fr auto; gap:18px; align-items:center; border-top:4px solid var(--gold); }
+  .position-icon { width:54px; height:54px; flex-shrink:0; border:2px solid currentColor; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:22px; background:#111; }
+  .position-label { font-family:'Rajdhani',Arial,sans-serif; font-size:10px; font-weight:700; letter-spacing:4px; text-transform:uppercase; color:var(--gold-dim); margin-bottom:5px; }
+  .position-status { font-family:'Rajdhani',Arial,sans-serif; font-size:28px; font-weight:700; letter-spacing:3px; line-height:1; margin-bottom:6px; }
+  .position-message { font-size:13px; color:var(--text-mid); font-style:italic; line-height:1.6; }
+  .score-track { height:4px; background:var(--surface2); border-radius:2px; margin-top:8px; overflow:hidden; max-width:340px; }
+  .score-fill  { height:100%; border-radius:2px; transition:width 0.6s ease; }
+  .score-ring  { width:64px; height:64px; border-radius:50%; border:3px solid var(--border); display:flex; flex-direction:column; align-items:center; justify-content:center; background:#111; margin-left:auto; }
+  .score-num   { font-family:var(--mono); font-size:20px; font-weight:700; line-height:1; }
+  .score-label { font-family:var(--mono); font-size:8px; color:var(--text-dim); letter-spacing:1px; margin-top:2px; }
+
+  /* - 2 BOARD CONTEXT (detail only, bottom) - */
+  .board-context { background:var(--surface2); border:1px solid var(--border); border-left:3px solid var(--gold-dim); border-radius:2px; padding:12px 14px; margin-bottom:18px; font-size:12px; color:var(--text-mid); font-style:italic; line-height:1.6; }
+  .board-context strong { font-family:'Rajdhani',Arial,sans-serif; font-size:9px; letter-spacing:3px; text-transform:uppercase; color:var(--gold-dim); font-style:normal; display:block; margin-bottom:4px; }
+
+  /* - 3 FLAT FREEDOM GRID (overview) - */
+  .freedom-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:10px; margin-bottom:18px; }
+  .freedom-card { border-radius:3px; padding:14px 10px 12px; text-align:center; border:1px solid var(--border); background:var(--surface); }
+  .fc-GRANTED    { background:var(--granted-bg);    border-color:var(--granted-bdr);    border-top:4px solid var(--granted); }
+  .fc-LIMITED    { background:var(--limited-bg);    border-color:var(--limited-bdr);    border-top:4px solid var(--limited); }
+  .fc-REBUILDING { background:var(--rebuilding-bg); border-color:var(--rebuilding-bdr); border-top:4px solid var(--rebuilding); }
+  .fc-LOCKED     { background:var(--locked-bg);     border-color:var(--locked-bdr);     border-top:4px solid var(--locked); }
+  .fc-SUSPENDED  { background:var(--suspended-bg);  border-color:var(--suspended-bdr);  border-top:4px solid var(--suspended); }
+  .freedom-card-name { font-family:'Rajdhani',Arial,sans-serif; font-size:13px; font-weight:700; color:var(--text); margin-bottom:8px; line-height:1.2; }
+  .freedom-badge { display:inline-block; font-family:var(--mono); font-size:9px; font-weight:700; letter-spacing:1.5px; padding:3px 7px; border-radius:2px; margin-bottom:6px; }
+  .fc-GRANTED    .freedom-badge { color:var(--granted);   border:1px solid var(--granted);   background:rgba(61,184,122,0.1); }
+  .fc-LIMITED    .freedom-badge { color:var(--limited);   border:1px solid var(--limited);   background:rgba(91,155,213,0.1); }
+  .fc-REBUILDING .freedom-badge { color:var(--rebuilding);border:1px solid var(--rebuilding);background:rgba(212,135,42,0.1); }
+  .fc-LOCKED     .freedom-badge { color:var(--locked);    border:1px solid var(--locked);    background:rgba(100,100,100,0.1); }
+  .fc-SUSPENDED  .freedom-badge { color:var(--suspended); border:1px solid var(--suspended); background:rgba(192,57,43,0.1); }
+  .freedom-note { font-size:10px; color:var(--text-dim); line-height:1.4; margin-bottom:4px; }
+  .suspension-countdown { margin-top:8px; padding-top:8px; border-top:1px solid var(--suspended-bdr); }
+  .countdown-days  { font-family:var(--mono); font-size:18px; font-weight:700; color:var(--suspended); line-height:1; }
+  .countdown-label { font-size:9px; color:#884; letter-spacing:1px; margin-top:2px; }
+  .countdown-lifts { font-size:9px; color:#666; margin-top:3px; }
+  .susp-bar-track  { height:3px; background:#3a1010; border-radius:2px; margin-top:6px; overflow:hidden; }
+  .susp-bar-fill   { height:100%; background:var(--suspended); border-radius:2px; }
+
+  /* - 3 CAROUSEL (detail) - */
+  .carousel-section { margin-bottom:24px; }
+  .carousel-wrap { position:relative; height:240px; overflow:hidden; }
+  .carousel-track { position:absolute; top:0; left:0; width:100%; height:100%; }
+  .c-card { position:absolute; top:50%; left:50%; border-radius:6px; padding:16px 12px; text-align:center; transition:all 0.45s cubic-bezier(0.25,0.46,0.45,0.94); cursor:pointer; user-select:none; display:flex; flex-direction:column; align-items:center; justify-content:center; border-top:4px solid transparent; }
+  .c-card-name { font-family:'Rajdhani',Arial,sans-serif; font-weight:700; line-height:1.2; }
+  .c-badge { display:inline-block; font-family:var(--mono); font-weight:700; letter-spacing:1.5px; padding:3px 8px; border-radius:2px; margin-top:6px; }
+  .c-note  { line-height:1.3; margin-top:6px; }
+  .c-countdown { margin-top:8px; }
+  .c-days  { font-family:var(--mono); font-weight:700; color:var(--suspended); }
+  .c-lifts { font-size:9px; color:#666; margin-top:2px; }
+  .c-bar-track { height:3px; background:#3a1010; border-radius:2px; margin-top:5px; overflow:hidden; width:100%; }
+  .c-bar-fill  { height:100%; background:var(--suspended); border-radius:2px; }
+  .carousel-arrow { position:absolute; top:50%; transform:translateY(-50%); background:none; border:1px solid var(--border); color:var(--text-dim); width:32px; height:32px; border-radius:50%; cursor:pointer; font-size:16px; display:flex; align-items:center; justify-content:center; z-index:10; transition:all 0.15s; }
+  .carousel-arrow:hover { border-color:var(--gold); color:var(--gold); }
+  .carousel-arrow.left  { left:4px; }
+  .carousel-arrow.right { right:4px; }
+  .carousel-dots { display:flex; justify-content:center; gap:6px; margin-top:10px; }
+  .c-dot { width:6px; height:6px; border-radius:50%; background:var(--border); cursor:pointer; transition:all 0.2s; }
+  .c-dot.active { background:var(--gold); transform:scale(1.3); }
+  .cc-GRANTED    { background:var(--granted-bg);    border-top-color:var(--granted); }
+  .cc-LIMITED    { background:var(--limited-bg);    border-top-color:var(--limited); }
+  .cc-REBUILDING { background:var(--rebuilding-bg); border-top-color:var(--rebuilding); }
+  .cc-LOCKED     { background:var(--locked-bg);     border-top-color:var(--locked); }
+  .cc-SUSPENDED  { background:var(--suspended-bg);  border-top-color:var(--suspended); }
+  .cc-GRANTED    .c-badge { color:var(--granted);   border:1px solid var(--granted);   background:rgba(61,184,122,0.1); }
+  .cc-LIMITED    .c-badge { color:var(--limited);   border:1px solid var(--limited);   background:rgba(91,155,213,0.1); }
+  .cc-REBUILDING .c-badge { color:var(--rebuilding);border:1px solid var(--rebuilding);background:rgba(212,135,42,0.1); }
+  .cc-LOCKED     .c-badge { color:var(--locked);    border:1px solid var(--locked);    background:rgba(100,100,100,0.1); }
+  .cc-SUSPENDED  .c-badge { color:var(--suspended); border:1px solid var(--suspended); background:rgba(192,57,43,0.1); }
+
+  /* - 4 NEXT UNLOCK - */
+  .unlock-card { background:var(--granted-bg); border:1px solid var(--granted-bdr); border-left:4px solid var(--granted); border-radius:3px; padding:18px; margin-bottom:18px; }
+  .unlock-header { display:flex; align-items:center; gap:12px; margin-bottom:4px; flex-wrap:wrap; }
+  .unlock-arrow  { font-size:18px; color:var(--granted); }
+  .unlock-target { font-family:'Rajdhani',Arial,sans-serif; font-size:20px; font-weight:700; letter-spacing:2px; color:var(--granted); }
+  .unlock-meta   { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px; margin-top:4px; }
+  .unlock-chip   { font-family:var(--mono); font-size:10px; padding:3px 8px; border-radius:2px; letter-spacing:1px; }
+  .chip-current  { background:var(--rebuilding-bg); color:var(--rebuilding); border:1px solid var(--rebuilding-bdr); }
+  .chip-needed   { background:var(--granted-bg);    color:var(--granted);    border:1px solid var(--granted-bdr); }
+  .chip-suspended{ background:var(--suspended-bg);  color:var(--suspended);  border:1px solid var(--suspended-bdr); }
+  .unlock-behaviours { list-style:none; }
+  .unlock-behaviour { display:flex; align-items:flex-start; gap:10px; padding:7px 0; border-bottom:1px solid rgba(61,184,122,0.1); font-size:13px; color:#bbb; }
+  .unlock-behaviour:last-child { border-bottom:none; }
+  .ub-marker { width:6px; height:6px; border-radius:50%; background:var(--granted); flex-shrink:0; margin-top:5px; }
+
+  /* - 5 SUSPENSIONS - */
+  .suspensions-panel { background:var(--suspended-bg); border:1px solid var(--suspended-bdr); border-left:4px solid var(--suspended); border-radius:3px; padding:16px; margin-bottom:18px; }
+  .suspension-row { display:flex; align-items:flex-start; gap:14px; padding:10px 0; border-bottom:1px solid rgba(192,57,43,0.15); }
+  .suspension-row:last-child { border-bottom:none; padding-bottom:0; }
+  .susp-left { min-width:80px; text-align:right; }
+  .susp-freedom { font-family:'Rajdhani',Arial,sans-serif; font-weight:700; font-size:13px; color:var(--suspended); }
+  .susp-detail { flex:1; }
+  .susp-reason { font-size:12px; color:#c88; margin-bottom:3px; }
+  .susp-meta   { font-family:var(--mono); font-size:10px; color:#884; letter-spacing:0.5px; margin-bottom:2px; }
+  .susp-days   { font-family:var(--mono); font-size:22px; font-weight:700; color:var(--suspended); }
+  .susp-days-label { font-family:var(--mono); font-size:9px; color:#884; letter-spacing:1px; }
+
+  /* - 5 WINS / SETBACKS - */
+  .wins-card     { background:var(--granted-bg); border:1px solid var(--granted-bdr); border-radius:3px; padding:16px; }
+  .setbacks-card { background:var(--surface);    border:1px solid var(--border);      border-radius:3px; padding:16px; }
+  .win-item  { display:flex; align-items:flex-start; gap:10px; padding:7px 0; border-bottom:1px solid rgba(61,184,122,0.1); font-size:13px; color:#c8e8d8; }
+  .win-item:last-child { border-bottom:none; }
+  .win-dot   { width:7px; height:7px; border-radius:50%; background:var(--granted); flex-shrink:0; margin-top:5px; }
+  .setback-item { display:flex; align-items:flex-start; gap:10px; padding:7px 0; border-bottom:1px solid var(--surface2); font-size:13px; color:var(--text-mid); }
+  .setback-item:last-child { border-bottom:none; }
+  .setback-dot  { width:7px; height:7px; border-radius:50%; background:var(--rebuilding); flex-shrink:0; margin-top:5px; }
+
+  /* - 7 FOCUS - */
+  .focus-card { background:var(--surface); border:1px solid var(--border); border-left:4px solid var(--gold); border-radius:3px; padding:16px; margin-bottom:18px; }
+  .focus-text { font-size:15px; color:var(--text-mid); font-style:italic; line-height:1.7; }
+
+  /* - 8 TARGETS - */
+  .targets-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:10px; margin-bottom:18px; }
+  .target-card  { background:var(--surface); border:1px solid var(--border); border-radius:3px; padding:12px 14px; display:flex; align-items:center; gap:10px; }
+  .target-card.achieved { background:var(--granted-bg); border-color:var(--granted-bdr); }
+  .target-icon  { font-size:16px; flex-shrink:0; }
+  .target-label { font-size:12px; color:var(--text-mid); line-height:1.3; }
+  .target-card.achieved .target-label { color:var(--granted); }
+
+  /* - 9 IMPORTANT ACTIVITIES - */
+  .hca-grid { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:18px; }
+  .hca-item  { display:flex; align-items:center; gap:7px; padding:6px 12px; border-radius:3px; font-family:'Rajdhani',Arial,sans-serif; font-size:12px; font-weight:600; letter-spacing:0.5px; border:1px solid var(--border); background:var(--surface); color:var(--text-mid); }
+  .hca-item.active   { border-color:var(--granted-bdr);   background:var(--granted-bg);   color:var(--granted); }
+  .hca-item.suspended{ border-color:var(--suspended-bdr); background:var(--suspended-bg); color:var(--suspended); }
+  .hca-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+  .hca-item.active    .hca-dot { background:var(--granted); }
+  .hca-item.suspended .hca-dot { background:var(--suspended); }
+
+  /* - 10 GOAL - */
+  .goal-banner { background:#111; border:1px solid var(--border); border-top:3px solid var(--gold); border-radius:3px; padding:22px 24px; margin-bottom:18px; text-align:center; }
+  .goal-text { font-size:14px; color:#777; font-style:italic; line-height:1.9; }
+  .goal-text strong { color:var(--gold); font-style:normal; }
+
+  /* - 12 FULL TRUST LOG - */
+  .log-table { width:100%; border-collapse:collapse; }
+  .log-table thead th { font-family:'Rajdhani',Arial,sans-serif; font-size:9px; font-weight:700; letter-spacing:3px; text-transform:uppercase; color:var(--gold-dim); padding:7px 10px; text-align:left; border-bottom:2px solid var(--border); }
+  .log-table tbody tr { border-bottom:1px solid var(--surface2); }
+  .log-table tbody tr:hover { background:var(--surface2); }
+  .log-table tbody td { padding:9px 10px; font-size:12px; color:var(--text-mid); vertical-align:top; }
+  .tl-date { font-family:var(--mono); font-size:10px; color:var(--text-dim); white-space:nowrap; width:80px; }
+  .tl-cat  { font-family:var(--mono); font-size:9px;  color:var(--text-dim); white-space:nowrap; }
+  .tl-by   { font-family:var(--mono); font-size:9px;  color:var(--text-dim); white-space:nowrap; }
+  .tl-pts  { font-family:var(--mono); font-size:11px; font-weight:700; width:46px; text-align:right; }
+  .tl-dir  { width:28px; text-align:center; font-size:14px; }
+  .pts-pos { color:var(--granted); }
+  .pts-neg { color:var(--suspended); }
+  .pts-zer { color:var(--text-dim); }
+  .dir-up  { color:var(--granted); }
+  .dir-dn  { color:var(--suspended); }
+  .dir-neu { color:var(--text-dim); }
+  .susp-tag    { display:inline-block; margin-left:6px; padding:1px 5px; background:var(--suspended-bg); border:1px solid var(--suspended-bdr); border-radius:2px; font-family:var(--mono); font-size:8px; color:var(--suspended); letter-spacing:1px; vertical-align:middle; }
+  .addedby-tag { display:block; font-family:var(--mono); font-size:9px; color:var(--text-dim); margin-top:2px; }
+  .susp-audit  { display:block; font-family:var(--mono); font-size:9px; color:#884; margin-top:2px; line-height:1.5; }
+
+  /* - REQUEST ROW STYLES - */
+  .log-row-pending  { background:rgba(200,168,74,0.06);  border-left:3px solid var(--req-pending)  !important; }
+  .log-row-approved { background:rgba(61,184,122,0.06);  border-left:3px solid var(--req-approved) !important; }
+  .log-row-declined { background:rgba(80,80,80,0.04);    border-left:3px solid var(--req-declined)  !important; opacity:0.6; }
+  .log-row-clash    { background:rgba(192,57,43,0.08);   border-left:3px solid var(--req-clash)    !important; }
+  .log-row-diary    { border-left:3px solid var(--border) !important; opacity:0.8; }
+  .req-badge { display:inline-block; margin-left:6px; padding:1px 6px; border-radius:2px; font-family:var(--mono); font-size:8px; font-weight:700; letter-spacing:1px; vertical-align:middle; }
+  .req-pending  { background:rgba(200,168,74,0.15);  color:var(--req-pending);  border:1px solid var(--req-pending); }
+  .req-approved { background:rgba(61,184,122,0.15);  color:var(--req-approved); border:1px solid var(--req-approved); }
+  .req-declined { background:rgba(80,80,80,0.15);    color:#888;                border:1px solid #555; }
+  .req-clash    { background:rgba(192,57,43,0.15);   color:var(--req-clash);    border:1px solid var(--req-clash); }
+  .req-detail   { display:block; font-size:11px; color:var(--text-dim); margin-top:3px; font-style:italic; }
+  .diary-tag    { display:inline-block; margin-left:6px; padding:1px 5px; background:var(--surface2); border:1px solid var(--border); border-radius:2px; font-family:var(--mono); font-size:8px; color:var(--text-dim); letter-spacing:1px; vertical-align:middle; }
+
+  /* - PENDING REQUESTS STRIP (overview) - */
+  .requests-strip { margin-bottom:18px; }
+  .req-row { display:flex; align-items:center; gap:12px; padding:10px 14px; background:var(--surface); border:1px solid var(--border); border-radius:3px; margin-bottom:8px; border-left:4px solid var(--req-pending); }
+  .req-row.approved { border-left-color:var(--req-approved); background:var(--granted-bg); }
+  .req-row.clash    { border-left-color:var(--req-clash); background:var(--suspended-bg); }
+  .req-event-name { flex:1; font-size:13px; color:var(--text); font-weight:500; }
+  .req-event-date { font-family:var(--mono); font-size:10px; color:var(--text-dim); white-space:nowrap; }
+  .req-status-chip { font-family:var(--mono); font-size:9px; font-weight:700; letter-spacing:1px; padding:2px 7px; border-radius:2px; white-space:nowrap; }
+  .req-clash-note { font-size:10px; color:var(--req-clash); margin-top:2px; }
+
+  /* - EMPTY STATES - */
+  .empty-note { font-size:12px; color:var(--granted); padding:4px 0; }
+  .empty-dim  { font-size:12px; color:var(--text-dim); font-style:italic; padding:4px 0; }
+
+  /* - FOOTER - */
+  .footer { text-align:center; font-family:var(--mono); font-size:10px; color:#3a3a3a; letter-spacing:1px; padding:18px 0 8px; border-top:1px solid var(--border); }
+
+  /* - ANIMATIONS - */
+  @keyframes fadeUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+  .an{animation:fadeUp 0.35s ease both}
+  .d1{animation-delay:.04s}.d2{animation-delay:.10s}.d3{animation-delay:.16s}
+  .d4{animation-delay:.22s}.d5{animation-delay:.28s}.d6{animation-delay:.34s}
+
+  /* - CUSTOM VIEW - */
+  .cv-toolbar { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; background:var(--surface2); border:1px solid var(--border); border-left:3px solid var(--gold-dim); border-radius:3px; padding:12px 16px; margin-bottom:16px; }
+  .cv-toolbar-left { display:flex; align-items:center; gap:10px; font-family:'Rajdhani',Arial,sans-serif; font-size:13px; font-weight:700; letter-spacing:2px; color:var(--gold); text-transform:uppercase; }
+  .cv-toolbar-right { display:flex; gap:8px; flex-wrap:wrap; }
+  .cv-add-btn { background:var(--surface); border:1px solid var(--border); color:var(--text-mid); padding:6px 12px; border-radius:3px; cursor:pointer; font-family:'Rajdhani',Arial,sans-serif; font-size:11px; font-weight:700; letter-spacing:2px; text-transform:uppercase; transition:all 0.15s; }
+  .cv-add-btn:hover { border-color:var(--gold); color:var(--gold); }
+  .cv-reset-btn { background:none; border:1px solid var(--suspended-bdr); color:var(--suspended); padding:6px 12px; border-radius:3px; cursor:pointer; font-family:'Rajdhani',Arial,sans-serif; font-size:11px; font-weight:700; letter-spacing:2px; text-transform:uppercase; transition:all 0.15s; }
+  .cv-reset-btn:hover { background:var(--suspended-bg); }
+  .cv-save-status { font-family:var(--mono); font-size:11px; color:var(--granted); }
+  .cv-pool-wrap { margin-bottom:16px; }
+  .cv-pool-label { font-family:'Rajdhani',Arial,sans-serif; font-size:10px; font-weight:700; letter-spacing:3px; text-transform:uppercase; color:var(--text-dim); margin-bottom:8px; }
+  .cv-pool { display:flex; flex-wrap:wrap; gap:8px; min-height:44px; padding:10px; background:var(--surface2); border:1px dashed var(--border); border-radius:3px; transition:background 0.15s; }
+  .cv-pool.dragover { background:var(--surface); border-color:var(--gold); }
+  .cv-chip { display:flex; align-items:center; gap:6px; padding:6px 10px; background:var(--surface); border:1px solid var(--border); border-radius:3px; cursor:grab; user-select:none; transition:all 0.15s; font-family:'Rajdhani',Arial,sans-serif; font-size:12px; font-weight:600; letter-spacing:1px; color:var(--text-mid); white-space:nowrap; }
+  .cv-chip:hover { border-color:var(--gold); color:var(--gold); }
+  .cv-chip.dragging { opacity:0.35; }
+  .cv-zone { margin-bottom:14px; background:var(--surface); border:1px solid var(--border); border-radius:3px; overflow:hidden; }
+  .cv-zone.zone-dragover { border-color:var(--gold); }
+  .cv-zone.zone-dragging { opacity:0.3; }
+  .cv-zone-header { display:flex; align-items:center; gap:8px; padding:8px 12px; background:var(--surface2); border-bottom:1px solid var(--border); }
+  .cv-zone-grip { font-size:14px; color:var(--text-dim); cursor:grab; flex-shrink:0; padding:2px 4px; user-select:none; }
+  .cv-zone-type-btn { font-family:'Rajdhani',Arial,sans-serif; font-size:10px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--gold-dim); background:none; border:1px solid var(--gold-dim); border-radius:2px; padding:3px 8px; cursor:pointer; transition:all 0.15s; }
+  .cv-zone-type-btn:hover { color:var(--gold); border-color:var(--gold); }
+  .cv-zone-arrows { display:flex; gap:3px; }
+  .cv-zone-arrow,.cv-zone-delete,.cv-placed-arrow,.cv-placed-eject { background:none; border:1px solid var(--border); color:var(--text-dim); width:22px; height:22px; border-radius:2px; cursor:pointer; font-size:10px; display:flex; align-items:center; justify-content:center; transition:all 0.15s; flex-shrink:0; }
+  .cv-zone-arrow:hover,.cv-placed-arrow:hover { border-color:var(--gold); color:var(--gold); }
+  .cv-zone-delete { margin-left:auto; border-color:var(--suspended-bdr); color:var(--suspended); }
+  .cv-zone-delete:hover,.cv-placed-eject:hover { background:var(--suspended-bg); border-color:var(--suspended); color:var(--suspended); }
+  .cv-zone-body { padding:10px; }
+  .cv-zone-body.two-col-body { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .cv-col,.cv-fullwidth-drop { min-height:56px; padding:6px; background:var(--bg); border:1px dashed var(--border); border-radius:3px; transition:background 0.15s; }
+  .cv-col.dragover,.cv-fullwidth-drop.dragover { background:var(--surface2); border-color:var(--gold); }
+  .cv-col-label { font-family:var(--mono); font-size:9px; color:var(--text-dim); letter-spacing:2px; text-transform:uppercase; margin-bottom:6px; text-align:center; }
+  .cv-col-empty,.cv-fullwidth-empty { font-size:11px; color:var(--text-dim); font-style:italic; text-align:center; padding:8px 0; }
+  .cv-placed { margin-bottom:8px; border-radius:3px; overflow:hidden; }
+  .cv-placed:last-child { margin-bottom:0; }
+  .cv-placed.dragging { opacity:0.3; }
+  .cv-placed-header { display:flex; align-items:center; gap:6px; padding:6px 10px; background:var(--surface2); border:1px solid var(--border); border-radius:3px 3px 0 0; cursor:grab; user-select:none; border-bottom:2px solid var(--gold-dim); }
+  .cv-placed-grip { font-size:12px; color:var(--gold-dim); flex-shrink:0; }
+  .cv-placed-name { font-family:'Rajdhani',Arial,sans-serif; font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--text-dim); flex:1; }
+  .cv-placed-arrows { display:flex; gap:3px; margin-left:auto; }
+  .cv-placed-content { border:1px solid var(--border); border-top:none; border-radius:0 0 3px 3px; padding:12px; background:var(--surface); }
+
+  /* - RESPONSIVE - */
+  @media (max-width:680px) {
+    .freedom-grid { grid-template-columns:repeat(2,1fr); }
+    .freedom-grid .freedom-card:nth-child(5) { grid-column:1/-1; }
+    .two-col { grid-template-columns:1fr; }
+    .cv-zone-body.two-col-body { grid-template-columns:1fr; }
+    .cv-toolbar { flex-direction:column; align-items:flex-start; }
+    .topbar-updated,.topbar-score,.print-btn { display:none; }
+    .position-banner { grid-template-columns:auto 1fr; }
+    .position-score-block { display:none; }
+    .position-status { font-size:22px; }
+    .carousel-wrap { height:180px; }
+  }
+  @media (max-width:400px) {
+    .topbar-title { font-size:14px; letter-spacing:2px; }
+    .page { padding:14px 12px 40px; }
+  }
+
+  /* - PRINT - */
+  @media print {
+    body { background:#fff !important; color:#111 !important; }
+    .topbar { position:static !important; background:#f0f0f0 !important; border-bottom:3px solid #8b6914 !important; }
+    .topbar-title { color:#8b6914 !important; }
+    .print-btn,.view-toggle { display:none !important; }
+    .page { padding:12px 16px 20px; max-width:100%; }
+    .goal-text { color:#666 !important; }
+    .goal-text strong { color:#8b6914 !important; }
+  }
+
+  /* Legacy rendering path */
+  .legacy-board { display:block; font-family:Arial,sans-serif; padding:12px; background:#1a1a1c; color:#e6e2d6; }
+  .leg-section { margin-bottom:16px; padding:12px; background:#232326; border:1px solid #38383c; border-radius:3px; }
+  .leg-title { font-size:11px; letter-spacing:3px; text-transform:uppercase; color:#6e5c28; margin-bottom:8px; font-weight:bold; }
+  .leg-status { font-size:24px; font-weight:bold; letter-spacing:2px; margin-bottom:4px; }
+  .leg-msg { font-size:13px; color:#aaa; font-style:italic; }
+  .leg-score { font-size:28px; font-weight:bold; color:#c8a84a; }
+  .leg-table { width:100%; border-collapse:collapse; font-size:12px; }
+  .leg-table td, .leg-table th { padding:6px 8px; border-bottom:1px solid #333; text-align:left; }
+  .leg-table th { color:#6e5c28; font-size:10px; text-transform:uppercase; letter-spacing:2px; }
+  .leg-freedom-row { padding:8px 0; border-bottom:1px solid #333; }
+  .leg-freedom-name { font-size:13px; font-weight:bold; color:#e6e2d6; }
+  .leg-badge { display:inline-block; padding:2px 8px; border-radius:2px; font-size:10px; font-weight:bold; letter-spacing:1px; margin-left:8px; }
+  .leg-granted   { color:#3db87a; border:1px solid #3db87a; }
+  .leg-limited   { color:#5b9bd5; border:1px solid #5b9bd5; }
+  .leg-rebuilding{ color:#d4872a; border:1px solid #d4872a; }
+  .leg-locked    { color:#777;    border:1px solid #777; }
+  .leg-suspended { color:#c0392b; border:1px solid #c0392b; }
+  .leg-note { font-size:11px; color:#666; margin-top:2px; }
+  .leg-item { padding:5px 0; border-bottom:1px solid #2a2a2e; font-size:13px; color:#aaa; }
+  .leg-item:last-child { border-bottom:none; }
+  .leg-dot-pos { color:#3db87a; margin-right:6px; }
+  .leg-dot-neg { color:#c0392b; margin-right:6px; }
+  .leg-dot-neu { color:#666; margin-right:6px; }
+  .leg-debug { margin-top:20px; padding:8px 12px; background:#111; border:1px solid #333; border-radius:3px; font-size:10px; color:#555; font-family:monospace; line-height:1.6; }
+  .leg-error { padding:20px; background:#280a08; border:1px solid #5a1010; border-radius:3px; color:#c0392b; font-size:14px; text-align:center; margin:20px 0; }
+
+  /* Print styles */
+  @media print {
+    body { background:#fff !important; color:#111 !important; }
+    .topbar { position:static !important; background:#f0f0f0 !important; border-bottom:3px solid #8b6914 !important; }
+    .topbar-title { color:#8b6914 !important; }
+    .print-btn, .view-toggle { display:none !important; }
+    .page { padding:12px 16px 20px; max-width:100%; }
+    .goal-text { color:#666 !important; }
+    .goal-text strong { color:#8b6914 !important; }
+    .legacy-board { display:none !important; }
+  }
+
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="topbar-title">Trust &amp; Freedom</div>
+    <div class="topbar-name" id="tb-name"></div>
+  </div>
+  <div class="topbar-right">
+    <div class="topbar-score">Score: <span id="tb-score"></span></div>
+    <div class="topbar-updated" id="tb-updated"></div>
+    <div class="topbar-updated" id="tb-version" style="color:#444;letter-spacing:1px"></div>
+    <div class="view-toggle">
+      <button class="view-btn" data-view="overview" onclick="setView('overview')">Overview</button>
+      <button class="view-btn" data-view="detail"   onclick="setView('detail')">Detail</button>
+      <button class="view-btn" data-view="custom"   onclick="setView('custom')">Custom</button>
+    </div>
+    <button class="print-btn" onclick="window.print()"> Print</button>
+  </div>
+</div>
+
+
+<!-- LEGACY BOARD - visible by default, hidden after modern render succeeds -->
+<div class="legacy-board" id="legacy-board">
+  <div id="leg-banner" style="background:#2a1a08;border:1px solid #c8a84a;border-radius:3px;padding:8px 14px;margin-bottom:14px;font-family:Arial,sans-serif;font-size:12px;color:#c8a84a;letter-spacing:2px;text-transform:uppercase;display:none">
+    Legacy iPad Mode
+  </div>
+  <div id="leg-loading" style="padding:20px;color:#666;font-family:Arial,sans-serif;font-size:14px">Loading board...</div>
+  <div id="leg-error-msg" class="leg-error" style="display:none">
+    Legacy display mode could not load. Please refresh or try another device.
+  </div>
+  <div id="leg-content">
+    <div class="leg-section">
+      <div class="leg-title">Current Position</div>
+      <div class="leg-status" id="leg-status">Loading...</div>
+      <div class="leg-msg" id="leg-msg"></div>
+      <div style="margin-top:8px">
+        Trust Score: <span class="leg-score" id="leg-score">-</span>
+      </div>
+    </div>
+
+    <div class="leg-section">
+      <div class="leg-title">Freedom Status</div>
+      <div id="leg-freedoms"></div>
+    </div>
+
+    <div class="leg-section" id="leg-susp-section" style="display:none">
+      <div class="leg-title">Active Suspensions</div>
+      <div id="leg-suspensions"></div>
+    </div>
+
+    <div class="leg-section">
+      <div class="leg-title">Next Unlock</div>
+      <div id="leg-unlock" style="font-size:14px;color:#aaa"></div>
+    </div>
+
+    <div class="leg-section">
+      <div class="leg-title">This Week's Focus</div>
+      <div id="leg-focus" style="font-size:13px;color:#aaa;font-style:italic"></div>
+    </div>
+
+    <div class="leg-section">
+      <div class="leg-title">Recent Wins</div>
+      <div id="leg-wins"></div>
+    </div>
+
+    <div class="leg-section">
+      <div class="leg-title">Recent Setbacks</div>
+      <div id="leg-setbacks"></div>
+    </div>
+
+    <div class="leg-section">
+      <div class="leg-title">Trust Log</div>
+      <table class="leg-table">
+        <thead><tr><th>Date</th><th>Event</th><th>Points</th></tr></thead>
+        <tbody id="leg-log"></tbody>
+      </table>
+    </div>
+
+    <div class="leg-section">
+      <div class="leg-title">Targets</div>
+      <div id="leg-targets"></div>
+    </div>
+
+    <div class="leg-section">
+      <div class="leg-title">Important Activities</div>
+      <div id="leg-activities"></div>
+    </div>
+
+    <div class="leg-section">
+      <div class="leg-title">This Week's Focus</div>
+      <div id="leg-focus" style="font-size:13px;color:#aaa;font-style:italic;padding:4px 0"></div>
+    </div>
+  </div>
+
+  <div class="leg-debug" id="leg-debug"></div>
+</div>
+
+
+<!-- Version label -->
+<div id="tfb-version-label" style="position:fixed;bottom:4px;right:8px;font-size:9px;color:#333;font-family:monospace;letter-spacing:1px;z-index:9999;pointer-events:none;opacity:0.6">v1.04</div>
+<div class="page" id="page-root" style="display:none">
+
+  <!-- 1 POSITION BANNER - all views -->
+  <div class="position-banner an d1" id="position-banner">
+    <div class="position-icon" id="pos-icon">o</div>
+    <div>
+      <div class="position-label">Current Position</div>
+      <div class="position-status" id="pos-status"></div>
+      <div class="position-message" id="pos-message"></div>
+      <div class="score-track"><div class="score-fill" id="score-fill"></div></div>
+    </div>
+    <div class="position-score-block">
+      <div class="score-ring" id="score-ring">
+        <div class="score-num" id="score-num"></div>
+        <div class="score-label">TRUST</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 
+       OVERVIEW VIEW
+       1 Position
+       8 Targets
+       3 Flat Freedom Grid
+       4+5 Next Unlock + Active Suspensions
+       pending Requests Strip
+       10 Goal
+   -->
+  <div class="view-overview">
+
+    <!-- 8 TARGETS -->
+    <div class="an d2">
+      <div class="section-label">Targets</div>
+      <div class="targets-grid gap" id="ov-targets-grid"></div>
+    </div>
+
+    <!-- 3 FLAT FREEDOM GRID -->
+    <div class="an d2">
+      <div class="section-label">Freedom Status</div>
+      <div class="freedom-grid gap" id="ov-freedom-grid"></div>
+    </div>
+
+    <!-- 4+5 NEXT UNLOCK + ACTIVE SUSPENSIONS -->
+    <div class="two-col an d3">
+      <div>
+        <div class="section-label">Next Unlock</div>
+        <div class="unlock-card gap" id="ov-unlock-card">
+          <div class="unlock-header">
+            <span class="unlock-arrow">-></span>
+            <span class="unlock-target" id="ov-unlock-target"></span>
+          </div>
+          <div class="unlock-meta" id="ov-unlock-meta"></div>
+          <ul class="unlock-behaviours" id="ov-unlock-behaviours"></ul>
+        </div>
+      </div>
+      <div id="ov-susp-col">
+        <div id="ov-suspensions-section" style="display:none">
+          <div class="section-label">Active Suspensions</div>
+          <div class="suspensions-panel gap" id="ov-suspensions-panel"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- pending REQUESTS STRIP -->
+    <div class="an d4" id="ov-requests-section" style="display:none">
+      <div class="section-label">On The Radar</div>
+      <div class="requests-strip" id="ov-requests-list"></div>
+    </div>
+
+    <!-- 10 GOAL -->
+    <div class="goal-banner an d5">
+      <div class="goal-text">
+        <strong>"Our goal is not obedience.</strong><br>
+        Our goal is to help build a trustworthy, independent young man<br>
+        who can make good decisions <strong>when nobody is watching."</strong>
+      </div>
+    </div>
+
+  </div><!-- /view-overview -->
+
+  <!-- 
+       DETAIL VIEW
+       1 Position
+       3 Carousel
+       12 Full Trust Log
+       5 Wins (left) / Setbacks (right)
+       5 Active Suspensions
+       4 Next Unlock
+       9 Important Activities
+       7 This Week's Focus
+       2 Board Context
+   -->
+  <div class="view-detail">
+
+    <!-- 3 CAROUSEL -->
+    <div class="carousel-section an d2">
+      <div class="section-label">Freedom Status</div>
+      <div class="carousel-wrap" id="carousel-wrap">
+        <button class="carousel-arrow left"  onclick="carouselMove(-1)"><</button>
+        <div class="carousel-track" id="carousel-track"></div>
+        <button class="carousel-arrow right" onclick="carouselMove(1)">></button>
+      </div>
+      <div class="carousel-dots" id="carousel-dots"></div>
+    </div>
+
+    <!-- 12 FULL TRUST LOG -->
+    <div class="an d3">
+      <div class="section-label">Full Trust Log</div>
+      <div class="card gap">
+        <table class="log-table">
+          <thead>
+            <tr>
+              <th class="tl-date">Date</th>
+              <th>Event</th>
+              <th class="tl-cat">Category</th>
+              <th class="tl-by">By</th>
+              <th class="tl-pts">Points</th>
+              <th class="tl-dir">^v</th>
+            </tr>
+          </thead>
+          <tbody id="dt-log-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 5 WINS (left) + SETBACKS (right) -->
+    <div class="two-col an d4">
+      <div>
+        <div class="section-label">Recent Wins</div>
+        <div class="wins-card gap" id="dt-wins-list"></div>
+      </div>
+      <div>
+        <div class="section-label">Recent Setbacks</div>
+        <div class="setbacks-card gap" id="dt-setbacks-list"></div>
+      </div>
+    </div>
+
+    <!-- 5 ACTIVE SUSPENSIONS -->
+    <div id="dt-suspensions-section" style="display:none" class="an d4">
+      <div class="section-label">Active Suspensions</div>
+      <div class="suspensions-panel gap" id="dt-suspensions-panel"></div>
+    </div>
+
+    <!-- 4 NEXT UNLOCK -->
+    <div class="an d4">
+      <div class="section-label">Next Unlock</div>
+      <div class="unlock-card gap" id="dt-unlock-card">
+        <div class="unlock-header">
+          <span class="unlock-arrow">-></span>
+          <span class="unlock-target" id="dt-unlock-target"></span>
+        </div>
+        <div class="unlock-meta" id="dt-unlock-meta"></div>
+        <ul class="unlock-behaviours" id="dt-unlock-behaviours"></ul>
+      </div>
+    </div>
+
+    <!-- 9 IMPORTANT ACTIVITIES -->
+    <div class="an d5">
+      <div class="section-label">Important Activities</div>
+      <div class="hca-grid gap" id="dt-hca-grid"></div>
+    </div>
+
+    <!-- 7 THIS WEEK'S FOCUS -->
+    <div class="an d5">
+      <div class="section-label">This Week's Focus</div>
+      <div class="focus-card gap"><div class="focus-text" id="dt-focus-text"></div></div>
+    </div>
+
+    <!-- 10 GOAL -->
+    <div class="goal-banner an d5">
+      <div class="goal-text">
+        <strong>"Our goal is not obedience.</strong><br>
+        Our goal is to help build a trustworthy, independent young man<br>
+        who can make good decisions <strong>when nobody is watching."</strong>
+      </div>
+    </div>
+
+    <!-- 2 BOARD CONTEXT -->
+    <div class="board-context an d6">
+      <strong>Board Context</strong>
+      <span id="dt-board-context"></span>
+    </div>
+
+  </div><!-- /view-detail -->
+
+  <!-- 
+       CUSTOM VIEW - zone layout engine
+   -->
+  <div class="view-custom">
+    <div class="cv-toolbar">
+      <div class="cv-toolbar-left">
+        Custom Layout
+        <span class="cv-save-status" id="cv-save-status"></span>
+      </div>
+      <div class="cv-toolbar-right">
+        <button class="cv-add-btn" onclick="addZone('full')">+ Full Width</button>
+        <button class="cv-add-btn" onclick="addZone('two-col')">+ Two Column</button>
+        <button class="cv-reset-btn" onclick="resetLayout()">Reset</button>
+      </div>
+    </div>
+    <div class="cv-pool-wrap" id="cv-pool-wrap">
+      <div class="cv-pool-label">Unassigned - drag into a zone</div>
+      <div class="cv-pool" id="cv-pool"></div>
+    </div>
+    <div id="cv-zones"></div>
+  </div><!-- /view-custom -->
+
+  <div class="footer" id="footer"></div>
+</div><!-- /page -->
+
+<script>
+/* - helpers - */
+function el(id){return document.getElementById(id);}
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+function parseDate(iso){const[y,m,d]=iso.split('-').map(Number);return new Date(y,m-1,d);}
+function fmt(iso){
+  if(!iso)return '';
+  const mn=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const[y,m,d]=iso.split('-').map(Number);return d+' '+mn[m-1]+' '+y;
+}
+function fmtDT(iso){
+  if(!iso)return '';
+  const d=new Date(iso);
+  return d.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})+' '+d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+}
+function daysBetween(a,b){return Math.round((b-a)/86400000);}
+function addDays(date,days){const d=new Date(date);d.setDate(d.getDate()+days);return d;}
+function isoFromDate(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+
+/* - bands - */
+const BANDS=[
+  {min:0,  max:20,  label:"SUSPENDED",       icon:"x",color:"var(--suspended)", msgFn:n=>`${n}'s trust account is currently suspended. Demonstrating genuine change is the only route forward.`},
+  {min:21, max:40,  label:"RESTRICTED",       icon:"o",color:"var(--rebuilding)",msgFn:n=>`${n} is in a restricted position. Trust needs to be rebuilt through consistent, honest behaviour.`},
+  {min:41, max:60,  label:"REBUILDING TRUST", icon:"*",color:"var(--rebuilding)",msgFn:n=>`${n} is actively rebuilding trust. Consistent choices over time are what move this forward.`},
+  {min:61, max:80,  label:"MAKING PROGRESS",  icon:"*",color:"var(--gold)",      msgFn:n=>`${n} is making genuine progress. Keep building - the next freedoms are within reach.`},
+  {min:81, max:100, label:"STRONG TRUST",     icon:"*",color:"var(--granted)",   msgFn:n=>`${n} has strong trust right now. This reflects consistently good choices. Keep it going.`}
+];
+
+/* - auto rules - */
+const AUTO_RULES={
+  "Local Daytime":[
+    {max:20,status:"LOCKED",    note:"Not currently available"},
+    {max:40,status:"LIMITED",   note:"Local area only, back by agreed time"},
+    {max:999,status:"GRANTED",  note:"Out locally, back by agreed time"}
+  ],
+  "Evening":[
+    {max:40,status:"LOCKED",    note:"Not currently available"},
+    {max:60,status:"REBUILDING",note:"Back by 9pm. Location shared."},
+    {max:80,status:"LIMITED",   note:"Agreed times. Location shared."},
+    {max:999,status:"GRANTED",  note:"Standard agreement applies"}
+  ],
+  "Wider Travel":[
+    {max:50,status:"LOCKED",    note:"Not currently available"},
+    {max:70,status:"REBUILDING",note:"Prior agreement required"},
+    {max:85,status:"LIMITED",   note:"With prior agreement"},
+    {max:999,status:"GRANTED",  note:"Subject to standard check-in"}
+  ],
+  "Parties":[
+    {max:70,status:"LOCKED",    note:"Not currently available"},
+    {max:85,status:"REBUILDING",note:"Being considered"},
+    {max:95,status:"LIMITED",   note:"With prior parent approval"},
+    {max:999,status:"GRANTED",  note:"Subject to parent approval"}
+  ],
+  "Sleepovers":[
+    {max:80,status:"LOCKED",    note:"Not currently available"},
+    {max:90,status:"REBUILDING",note:"Being considered"},
+    {max:97,status:"LIMITED",   note:"With prior parent approval"},
+    {max:999,status:"GRANTED",  note:"Subject to parent approval"}
+  ]
+};
+
+const STATUS_RANK   ={GRANTED:5,LIMITED:4,REBUILDING:3,LOCKED:2,SUSPENDED:1};
+const FREEDOM_ORDER =["Local Daytime","Evening","Wider Travel","Parties","Sleepovers"];
+
+/* - suspension engine - */
+function calcSuspensions(eventLog,today){
+  const m={};
+  eventLog.forEach(ev=>{
+    if(!ev.suspend)return;
+    const s=ev.suspend; if(!s.freedom)return;
+    const start=parseDate(ev.date);
+    const nomEnd=addDays(start,s.days||14);
+    const liftD=s.earlyLiftDate?(parseDate(s.earlyLiftDate)<nomEnd?parseDate(s.earlyLiftDate):nomEnd):nomEnd;
+    const daysRem=daysBetween(today,liftD);
+    const total=Math.max(1,daysBetween(start,liftD));
+    const pct=Math.max(0,Math.min(100,((total-daysRem)/total)*100));
+    if(daysRem>0){
+      if(!m[s.freedom]||daysRem>m[s.freedom].daysRemaining){
+        m[s.freedom]={active:true,daysRemaining:daysRem,liftDate:isoFromDate(liftD),
+          imposedDate:s.imposedDate||ev.date,imposedBy:s.imposedBy||ev.addedBy||'',
+          originalEndDate:s.originalEndDate||isoFromDate(nomEnd),
+          earlyLift:!!s.earlyLiftDate,earlyLiftDate:s.earlyLiftDate||null,
+          reason:s.reason||'Suspended',scoreFloor:s.scoreFloor||null,pct};
+      }
+    }
+  });
+  return m;
+}
+
+/* - cascade - */
+function applyCascade(raw){
+  let block=false; const r={};
+  FREEDOM_ORDER.forEach(n=>{
+    if(block){r[n]='LOCKED';}
+    else{r[n]=raw[n]; if(raw[n]==='SUSPENDED')block=true;}
+  });
+  return r;
+}
+
+/* - raw status - */
+function getRawStatus(name,score,suspMap,C){
+  const override=C.freedomOverrides&&C.freedomOverrides[name];
+  const susp=suspMap[name];
+  if(susp&&susp.active&&!(override&&override.overrideStatus))return 'SUSPENDED';
+  if(override&&override.overrideStatus)return override.overrideStatus;
+  let eff=score;
+  if(susp&&susp.scoreFloor!==null)eff=Math.min(score,susp.scoreFloor);
+  const rules=AUTO_RULES[name]||[];
+  const rule=rules.find(r=>eff<=r.max)||rules[rules.length-1];
+  return rule?rule.status:'LOCKED';
+}
+
+/* - next unlock - */
+function calcNextUnlock(score,freedomStatuses,suspMap){
+  let target=null,rank=99;
+  for(const n of FREEDOM_ORDER){
+    const s=freedomStatuses[n];
+    const isSusp=suspMap[n]&&suspMap[n].active;
+    if(s!=='GRANTED'&&!isSusp){const r=STATUS_RANK[s]||0; if(r<rank){rank=r;target=n;}}
+  }
+  if(!target){
+    const active=Object.entries(suspMap).filter(([,v])=>v.active);
+    if(active.length){
+      active.sort((a,b)=>a[1].daysRemaining-b[1].daysRemaining);
+      const[n,su]=active[0];
+      return{name:n,currentStatus:freedomStatuses[n],suspended:true,daysRemaining:su.daysRemaining,suspendedOnly:true,nextScore:null,nextStatus:null};
+    }
+    return null;
+  }
+  const rules=AUTO_RULES[target]||[];
+  let nextScore=null,nextStatus=null;
+  for(const rule of rules){
+    if(score<=rule.max){const i=rules.indexOf(rule); if(i+1<rules.length){nextStatus=rules[i+1].status;nextScore=rule.max+1;} break;}
+  }
+  return{name:target,currentStatus:freedomStatuses[target],suspended:false,daysRemaining:0,suspendedOnly:false,nextScore,nextStatus};
+}
+
+/* - view - */
+function setView(v){
+  el('page-root').className='page show-'+v;
+  document.querySelectorAll('.view-btn').forEach(b=>b.classList.toggle('active',b.dataset.view===v));
+  try{localStorage.setItem('tfb-view',v);}catch(e){}
+  if(v==='custom'){cvLoad();renderCustomBoard();}
+}
+
+/* - render unlock - */
+function renderUnlock(tEl,mEl,lEl,score,fs,suspMap){
+  const nu=calcNextUnlock(score,fs,suspMap);
+  if(!nu||!tEl)return;
+  tEl.textContent=nu.name+(nu.suspendedOnly?' - suspension clears first':'');
+  let chips='';
+  if(nu.suspendedOnly){chips=`<span class="unlock-chip chip-suspended">Suspension running - ${nu.daysRemaining} days remaining</span>`;}
+  else{chips=`<span class="unlock-chip chip-current">Current: ${esc(nu.currentStatus)}</span>`;if(nu.nextScore)chips+=`<span class="unlock-chip chip-needed">Target: ${esc(nu.nextStatus)} (${nu.nextScore}+ points)</span>`;}
+  mEl.innerHTML=chips;
+  lEl.innerHTML='';
+  CONFIG.nextUnlockBehaviours.forEach(b=>{const li=document.createElement('li');li.className='unlock-behaviour';li.innerHTML=`<span class="ub-marker"></span><span>${esc(b)}</span>`;lEl.appendChild(li);});
+}
+
+/* - render suspensions panel - */
+function renderSuspPanel(panelId,sectionId,suspMap){
+  const active=Object.entries(suspMap).filter(([,v])=>v.active);
+  const sec=el(sectionId); if(!sec)return;
+  if(active.length){
+    sec.style.display='block';
+    el(panelId).innerHTML=active.map(([name,s])=>`
+      <div class="suspension-row">
+        <div class="susp-left"><div class="susp-freedom">${esc(name)}</div><div class="susp-days-label">DAYS LEFT</div><div class="susp-days">${s.daysRemaining}</div></div>
+        <div class="susp-detail">
+          <div class="susp-reason">${esc(s.reason)}</div>
+          <div class="susp-meta">Imposed: ${fmt(s.imposedDate)}${s.imposedBy?'  '+esc(s.imposedBy):''}</div>
+          <div class="susp-meta">Original end: ${fmt(s.originalEndDate)}</div>
+          <div class="susp-meta">Lifts: ${fmt(s.liftDate)}${s.earlyLift?`  <span style="color:var(--granted)">Early lift ${fmt(s.earlyLiftDate)}</span>`:''}</div>
+          ${s.scoreFloor!==null?`<div class="susp-meta">Score floor: ${s.scoreFloor}</div>`:''}
+        </div>
+      </div>`).join('');
+  }else{sec.style.display='none';}
+}
+
+/* - render flat freedom grid - */
+function renderFlatGrid(containerId,freedomStatuses,suspMap,rawStatuses){
+  const fg=el(containerId); if(!fg)return; fg.innerHTML='';
+  FREEDOM_ORDER.forEach((name,i)=>{
+    const status=freedomStatuses[name];
+    const susp=suspMap[name];
+    const isSusp=rawStatuses[name]==='SUSPENDED';
+    const isCascaded=status==='LOCKED'&&rawStatuses[name]!=='LOCKED'&&i>0;
+    let suspHtml='';
+    if(isSusp&&susp){
+      suspHtml=`<div class="suspension-countdown"><div class="countdown-days">${susp.daysRemaining}</div><div class="countdown-label">DAYS REMAINING</div><div class="countdown-lifts">Lifts: ${fmt(susp.liftDate)}</div><div class="susp-bar-track"><div class="susp-bar-fill" style="width:${susp.pct}%"></div></div></div>`;
+    }
+    const note=isCascaded?'Locked until preceding freedoms clear':(susp&&isSusp?susp.reason:AUTO_RULES[name]?.find(r=>r.status===status)?.note||'');
+    const d=document.createElement('div');
+    d.className=`freedom-card fc-${status}`;
+    d.innerHTML=`<div class="freedom-card-name">${esc(name)}</div><div><span class="freedom-badge">${esc(status)}</span></div><div class="freedom-note">${esc(note)}</div>${suspHtml}`;
+    fg.appendChild(d);
+  });
+}
+
+/* - carousel - */
+let carouselIndex=0, carouselData=[];
+function buildCarousel(freedomStatuses,suspMap,rawStatuses){
+  const track=el('carousel-track'); const dots=el('carousel-dots');
+  if(!track)return;
+  track.innerHTML=''; dots.innerHTML='';
+  carouselData=FREEDOM_ORDER.map(name=>({name,status:freedomStatuses[name],raw:rawStatuses[name],susp:suspMap[name]}));
+  // BL-16: start on highest GRANTED freedom, fall back to next unlock target
+  const grantedIdx = [...FREEDOM_ORDER].reverse()
+    .map(n => FREEDOM_ORDER.indexOf(n))
+    .find(i => freedomStatuses[FREEDOM_ORDER[i]] === 'GRANTED');
+  if(grantedIdx !== undefined) {
+    carouselIndex = grantedIdx;
+  } else {
+    const nu=calcNextUnlock(0,freedomStatuses,suspMap);
+    carouselIndex=nu?Math.max(0,FREEDOM_ORDER.indexOf(nu.name)):0;
+  }
+  carouselData.forEach((_,i)=>{
+    const card=document.createElement('div'); card.className='c-card'; card.id='c-card-'+i; card.onclick=()=>{carouselIndex=i;updateCarousel();}; track.appendChild(card);
+    const dot=document.createElement('div');  dot.className='c-dot';  dot.onclick=()=>{carouselIndex=i;updateCarousel();}; dots.appendChild(dot);
+  });
+  updateCarousel();
+}
+function updateCarousel(){
+  const N=carouselData.length; const wrap=el('carousel-wrap'); if(!wrap)return;
+  const ww=wrap.offsetWidth||600;
+  const CW=Math.min(230,ww*0.36); // card width
+  const GAP=CW*0.62;              // spacing between card centres
+  const positions=[
+    {offset:-2,scale:0.58,opacity:0.28,zIndex:1},
+    {offset:-1,scale:0.82,opacity:0.72,zIndex:3},
+    {offset: 0,scale:1.00,opacity:1.00,zIndex:5},
+    {offset: 1,scale:0.82,opacity:0.72,zIndex:3},
+    {offset: 2,scale:0.58,opacity:0.28,zIndex:1}
+  ];
+  carouselData.forEach((d,i)=>{
+    const card=el('c-card-'+i); if(!card)return;
+    let rel=((i-carouselIndex)+N)%N; if(rel>N/2)rel-=N;
+    const pos=positions.find(p=>p.offset===rel)||{offset:rel,scale:0.25,opacity:0,zIndex:0};
+    // translateX centres the card: offset by position, then pull back by half card width
+    const tx = rel * GAP - CW/2;
+    card.style.cssText=`
+      transform: translateX(${tx}px) translateY(-50%) scale(${pos.scale});
+      opacity:${pos.opacity};
+      z-index:${pos.zIndex};
+      width:${CW}px;
+      pointer-events:${pos.opacity>0.1?'auto':'none'};
+    `;
+    const isActive=rel===0; const isNear=Math.abs(rel)===1; const isSusp=d.raw==='SUSPENDED';
+    card.className=`c-card cc-${d.status}`;
+    card.innerHTML=`
+      <div class="c-card-name" style="font-size:${isActive?16:isNear?13:10}px;color:${isActive?'var(--text)':isNear?'var(--text-mid)':'var(--text-dim)'}">${esc(d.name)}</div>
+      <span class="c-badge" style="font-size:${isActive?9:8}px">${esc(d.status)}</span>
+      ${isActive||isNear?`<div class="c-note" style="font-size:${isActive?10:9}px;color:var(--text-dim)">${esc(d.susp&&isSusp?d.susp.reason:AUTO_RULES[d.name]?.find(r=>r.status===d.status)?.note||'')}</div>`:''}
+      ${isActive&&isSusp&&d.susp?`<div class="c-countdown"><div class="c-days" style="font-size:22px">${d.susp.daysRemaining}</div><div class="c-lifts">DAYS  Lifts ${fmt(d.susp.liftDate)}</div><div class="c-bar-track"><div class="c-bar-fill" style="width:${d.susp.pct}%"></div></div></div>`:''}
+    `;
+  });
+  document.querySelectorAll('.c-dot').forEach((d,i)=>d.classList.toggle('active',i===carouselIndex));
+}
+function carouselMove(dir){carouselIndex=(carouselIndex+dir+carouselData.length)%carouselData.length;updateCarousel();}
+let touchX=0;
+document.addEventListener('touchstart',e=>{touchX=e.touches[0].clientX;},{passive:true});
+document.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-touchX;if(Math.abs(dx)>40)carouselMove(dx<0?1:-1);},{passive:true});
+
+/* - render trust log with request/diary highlighting - */
+function renderLog(tbodyId,sorted,suspMap,today){
+  const lb=el(tbodyId); if(!lb)return; lb.innerHTML='';
+  sorted.forEach(e=>{
+    const type=e.entryType||'event';
+    const isReq=type==='request';
+    const isDiary=type==='diary'||(type==='event'&&e.points===0&&!e.suspend&&!isReq);
+    const dCls=e.points>0?'dir-up':e.points<0?'dir-dn':'dir-neu';
+    const dIcon=e.points>0?'^':e.points<0?'v':'-';
+    const pCls=e.points>0?'pts-pos':e.points<0?'pts-neg':'pts-zer';
+    const pStr=e.points>0?'+'+e.points:e.points===0?'-':''+e.points;
+
+    let rowClass='';
+    let extraBadge='';
+    let reqDetailHtml='';
+
+    if(isReq&&e.request){
+      const req=e.request;
+      const reqDate=parseDate(req.eventDate);
+      // check if event date falls within any active suspension
+      const clashSusp=Object.values(suspMap||{}).find(s=>s.active&&daysBetween(today,parseDate(s.liftDate))>0&&reqDate<=parseDate(s.liftDate)&&reqDate>=today);
+      if(clashSusp){
+        rowClass='log-row-clash';
+        extraBadge=`<span class="req-badge req-clash">CLASH</span>`;
+        reqDetailHtml=`<span class="req-detail"> Suspension active on this date  ${fmt(req.eventDate)}</span>`;
+      } else if(req.status==='approved'){
+        rowClass='log-row-approved';
+        extraBadge=`<span class="req-badge req-approved">APPROVED</span>`;
+        reqDetailHtml=`<span class="req-detail">${esc(req.details)}  ${fmt(req.eventDate)}</span>`;
+      } else if(req.status==='declined'){
+        rowClass='log-row-declined';
+        extraBadge=`<span class="req-badge req-declined">DECLINED</span>`;
+        reqDetailHtml=`<span class="req-detail">${esc(req.details)}  ${fmt(req.eventDate)}</span>`;
+      } else {
+        rowClass='log-row-pending';
+        extraBadge=`<span class="req-badge req-pending">PENDING</span>`;
+        reqDetailHtml=`<span class="req-detail">${esc(req.details)}  ${fmt(req.eventDate)}</span>`;
+      }
+    } else if(isDiary){
+      rowClass='log-row-diary';
+      extraBadge=`<span class="diary-tag">NOTE</span>`;
+    }
+
+    const suspTag=e.suspend?`<span class="susp-tag">SUSP</span>`:'';
+    const addedBy=e.addedBy?`<span class="addedby-tag">${esc(e.addedBy)}${e.addedAt?'  '+fmtDT(e.addedAt):''}</span>`:'';
+    let auditLine='';
+    if(e.suspend){
+      const s=e.suspend;
+      auditLine=`<span class="susp-audit">Imposed: ${fmt(s.imposedDate||e.date)}${s.imposedBy?' by '+esc(s.imposedBy):''}  Original end: ${fmt(s.originalEndDate||'n/a')}${s.earlyLiftDate?'  Early lift: '+fmt(s.earlyLiftDate):''}</span>`;
+    }
+
+    const tr=document.createElement('tr');
+    if(rowClass) tr.className=rowClass;
+    tr.innerHTML=`
+      <td class="tl-date">${esc(fmt(e.date))}</td>
+      <td>${esc(e.event)}${extraBadge}${suspTag}${addedBy}${auditLine}${reqDetailHtml}</td>
+      <td class="tl-cat">${esc(e.category||'')}</td>
+      <td class="tl-by">${esc(e.addedBy||'')}</td>
+      <td class="tl-pts ${pCls}">${pStr}</td>
+      <td class="tl-dir ${dCls}">${dIcon}</td>
+    `;
+    lb.appendChild(tr);
+  });
+}
+
+/* - render requests strip (overview) - */
+function renderRequestsStrip(listId,sectionId,eventLog,suspMap,today){
+  const requests=eventLog.filter(e=>e.entryType==='request'&&e.request&&e.request.status!=='declined');
+  const sec=el(sectionId); if(!sec)return;
+  if(!requests.length){sec.style.display='none';return;}
+  // only show future requests
+  const future=requests.filter(e=>parseDate(e.request.eventDate)>=today);
+  if(!future.length){sec.style.display='none';return;}
+  sec.style.display='block';
+  const list=el(listId); if(!list)return;
+  list.innerHTML='';
+  future.sort((a,b)=>a.request.eventDate.localeCompare(b.request.eventDate));
+  future.forEach(e=>{
+    const req=e.request;
+    const reqDate=parseDate(req.eventDate);
+    const clashSusp=Object.values(suspMap||{}).find(s=>s.active&&reqDate<=parseDate(s.liftDate)&&reqDate>=today);
+    const div=document.createElement('div');
+    div.className='req-row'+(clashSusp?' clash':req.status==='approved'?' approved':'');
+    let statusChip='';
+    if(clashSusp) statusChip=`<span class="req-status-chip req-clash">SUSPENSION CLASH</span>`;
+    else if(req.status==='approved') statusChip=`<span class="req-status-chip req-approved">APPROVED</span>`;
+    else statusChip=`<span class="req-status-chip req-pending">PENDING</span>`;
+    div.innerHTML=`
+      <div class="req-event-name">${esc(e.event)}</div>
+      <div class="req-event-date">${fmt(req.eventDate)}</div>
+      ${statusChip}
+    `;
+    if(clashSusp) div.innerHTML+=`<div class="req-clash-note">Suspension active on this date</div>`;
+    list.appendChild(div);
+  });
+}
+
+/* 
+   CUSTOM LAYOUT ENGINE
+ */
+const ALL_SECTIONS=[
+  {id:'s3',  label:'Freedom Status'},
+  {id:'s4',  label:'Next Unlock'},
+  {id:'s5s', label:'Active Suspensions'},
+  {id:'s5w', label:'Recent Wins'},
+  {id:'s6',  label:'Recent Setbacks'},
+  {id:'s7',  label:"This Week's Focus"},
+  {id:'s8',  label:'Targets'},
+  {id:'s9',  label:'Important Activities'},
+  {id:'s10', label:'Goal'},
+  {id:'s12', label:'Full Trust Log'},
+  {id:'sreq',label:'On The Radar'}
+];
+const DEFAULT_LAYOUT={
+  zones:[
+    {id:'z1',type:'full',    sections:['s3']},
+    {id:'z2',type:'two-col', left:['s4','s5w'],right:['s5s','s6']},
+    {id:'z3',type:'full',    sections:['s7','s8','s9','s10','s12']}
+  ],
+  pool:['sreq']
+};
+let cvLayout=null; let cvDragItem=null; let cvNextZoneId=10;
+let cvLongPressTimer=null; let cvTouchClone=null;
+
+function cvSave(){try{localStorage.setItem('tfb-cv-layout',JSON.stringify(cvLayout));}catch(e){}; const s=el('cv-save-status');if(s){s.textContent='ok Saved';setTimeout(()=>{s.textContent='';},1500);}}
+function cvLoad(){try{const r=localStorage.getItem('tfb-cv-layout');if(r){const p=JSON.parse(r);if(p&&p.zones){cvLayout=p;return;}}}catch(e){}; cvLayout=JSON.parse(JSON.stringify(DEFAULT_LAYOUT));}
+function resetLayout(){if(!confirm('Reset layout to default?'))return; cvLayout=JSON.parse(JSON.stringify(DEFAULT_LAYOUT));cvNextZoneId=10;cvSave();renderCustomBoard();}
+function addZone(type){const id='z'+(cvNextZoneId++);cvLayout.zones.push(type==='two-col'?{id,type:'two-col',left:[],right:[]}:{id,type:'full',sections:[]});cvSave();renderCustomBoard();}
+function deleteZone(zId){const z=cvLayout.zones.find(x=>x.id===zId);if(!z)return;const sects=z.type==='two-col'?[...(z.left||[]),...(z.right||[])]:(z.sections||[]);cvLayout.pool=[...(cvLayout.pool||[]),...sects];cvLayout.zones=cvLayout.zones.filter(x=>x.id!==zId);cvSave();renderCustomBoard();}
+function toggleZoneType(zId){const z=cvLayout.zones.find(x=>x.id===zId);if(!z)return;if(z.type==='full'){const s=z.sections||[];z.type='two-col';z.left=s.filter((_,i)=>i%2===0);z.right=s.filter((_,i)=>i%2===1);delete z.sections;}else{z.type='full';z.sections=[...(z.left||[]),...(z.right||[])];delete z.left;delete z.right;}cvSave();renderCustomBoard();}
+function moveZone(zId,dir){const i=cvLayout.zones.findIndex(x=>x.id===zId);if(i<0)return;const ni=i+dir;if(ni<0||ni>=cvLayout.zones.length)return;const z=cvLayout.zones.splice(i,1)[0];cvLayout.zones.splice(ni,0,z);cvSave();renderCustomBoard();}
+function ejectSection(sId,zId,col){const z=cvLayout.zones.find(x=>x.id===zId);if(!z)return;if(z.type==='two-col'){if(col==='left')z.left=(z.left||[]).filter(s=>s!==sId);else z.right=(z.right||[]).filter(s=>s!==sId);}else{z.sections=(z.sections||[]).filter(s=>s!==sId);}cvLayout.pool=[...(cvLayout.pool||[]),sId];cvSave();renderCustomBoard();}
+function moveSectionInZone(sId,zId,col,dir){const z=cvLayout.zones.find(x=>x.id===zId);if(!z)return;const arr=z.type==='two-col'?(col==='left'?z.left:z.right):z.sections;const i=arr.indexOf(sId);if(i<0)return;const ni=i+dir;if(ni<0||ni>=arr.length)return;arr.splice(i,1);arr.splice(ni,0,sId);cvSave();renderCustomBoard();}
+
+function cvDragStart(kind,id,srcZoneId,srcCol){cvDragItem={kind,id,srcZoneId,srcCol};}
+function cvDragEnd(){cvDragItem=null;}
+function removeSectionFromSource(sId,srcZoneId,srcCol){if(!srcZoneId){cvLayout.pool=(cvLayout.pool||[]).filter(s=>s!==sId);return;}const z=cvLayout.zones.find(x=>x.id===srcZoneId);if(!z)return;if(z.type==='two-col'){if(srcCol==='left')z.left=(z.left||[]).filter(s=>s!==sId);else z.right=(z.right||[]).filter(s=>s!==sId);}else{z.sections=(z.sections||[]).filter(s=>s!==sId);}}
+
+function cvDropOnPool(){if(!cvDragItem)return;if(cvDragItem.kind==='section'){removeSectionFromSource(cvDragItem.id,cvDragItem.srcZoneId,cvDragItem.srcCol);if(!(cvLayout.pool||[]).includes(cvDragItem.id))cvLayout.pool=[...(cvLayout.pool||[]),cvDragItem.id];cvSave();renderCustomBoard();}cvDragEnd();}
+function cvDropOnZone(targetZoneId,targetCol){if(!cvDragItem)return;const item=cvDragItem;cvDragEnd();if(item.kind==='zone'){const fi=cvLayout.zones.findIndex(z=>z.id===item.id);const ti=cvLayout.zones.findIndex(z=>z.id===targetZoneId);if(fi>=0&&ti>=0&&fi!==ti){const z=cvLayout.zones.splice(fi,1)[0];cvLayout.zones.splice(ti,0,z);cvSave();renderCustomBoard();}return;}if(item.kind==='section'||item.kind==='chip'){const sId=item.id;if(item.kind==='section')removeSectionFromSource(sId,item.srcZoneId,item.srcCol);else cvLayout.pool=(cvLayout.pool||[]).filter(s=>s!==sId);const z=cvLayout.zones.find(x=>x.id===targetZoneId);if(!z)return;if(z.type==='two-col'){const col=targetCol==='right'?z.right:z.left;if(!col.includes(sId))col.push(sId);}else{if(!(z.sections||[]).includes(sId))z.sections.push(sId);}cvSave();renderCustomBoard();}}
+
+function cvSectionHTML(sId){
+  const C=CONFIG; const today=new Date(); today.setHours(0,0,0,0);
+  let score=C.startingScore||50; C.eventLog.forEach(e=>{score+=(e.points||0);}); score=Math.max(0,Math.min(100,Math.round(score)));
+  const suspMap=calcSuspensions(C.eventLog,today);
+  const raw={}; FREEDOM_ORDER.forEach(n=>{raw[n]=getRawStatus(n,score,suspMap,C);}); const fs=applyCascade(raw);
+  const visible=[...C.eventLog].filter(e=>e.visible!==false).sort((a,b)=>b.date.localeCompare(a.date));
+  const uid=sId+'-'+Math.random().toString(36).slice(2,6);
+  switch(sId){
+    case 's3': return`<div style="font-size:12px;color:var(--text-dim);font-style:italic">Carousel shown in Detail view.</div>`;
+    case 's4':{const h=`<div class="unlock-card"><div class="unlock-header"><span class="unlock-arrow">-></span><span id="cv-ut-${uid}"></span></div><div id="cv-um-${uid}"></div><ul class="unlock-behaviours" id="cv-ub-${uid}"></ul></div>`;setTimeout(()=>renderUnlock(el('cv-ut-'+uid),el('cv-um-'+uid),el('cv-ub-'+uid),score,fs,suspMap),0);return h;}
+    case 's5s':{const active=Object.entries(suspMap).filter(([,v])=>v.active);return active.length?`<div class="suspensions-panel" style="margin:0">${active.map(([n,s])=>`<div class="suspension-row"><div class="susp-left"><div class="susp-freedom">${esc(n)}</div><div class="susp-days">${s.daysRemaining}</div></div><div class="susp-detail"><div class="susp-reason">${esc(s.reason)}</div><div class="susp-meta">Lifts: ${fmt(s.liftDate)}</div></div></div>`).join('')}</div>`:`<div class="empty-note">No active suspensions ok</div>`;}
+    case 's5w':{const w=visible.filter(e=>e.points>0).slice(0,6);return`<div class="wins-card" style="margin:0">${w.length?w.map(x=>`<div class="win-item"><span class="win-dot"></span><span>${esc(x.event)}</span></div>`).join(''):'<div class="empty-dim">No wins recorded yet.</div>'}</div>`;}
+    case 's6':{const sb=visible.filter(e=>e.points<0).slice(0,6);return`<div class="setbacks-card" style="margin:0">${sb.length?sb.map(x=>`<div class="setback-item"><span class="setback-dot"></span><span>${esc(x.event)}</span></div>`).join(''):'<div class="empty-note">No setbacks ok</div>'}</div>`;}
+    case 's7': return`<div class="focus-card" style="margin:0"><div class="focus-text">${esc(C.currentFocus)}</div></div>`;
+    case 's8': return`<div class="targets-grid">${(C.targets||[]).map(t=>`<div class="target-card${t.achieved?' achieved':''}"><div class="target-icon">${t.achieved?'ok':'o'}</div><div class="target-label">${esc(t.label)}</div></div>`).join('')}</div>`;
+    case 's9': return`<div class="hca-grid">${(C.highCostActivities||[]).map(a=>`<div class="hca-item${a.active?' active':' suspended'}"><span class="hca-dot"></span>${esc(a.label)}</div>`).join('')}</div>`;
+    case 's10': return`<div class="goal-banner" style="margin:0"><div class="goal-text"><strong>"Our goal is not obedience.</strong><br>Our goal is to help build a trustworthy, independent young man<br>who can make good decisions <strong>when nobody is watching."</strong></div></div>`;
+    case 's12':{setTimeout(()=>renderLog('cv-log-'+uid,visible,suspMap,today),0);return`<div class="card" style="padding:10px"><table class="log-table"><thead><tr><th class="tl-date">Date</th><th>Event</th><th class="tl-cat">Cat</th><th class="tl-pts">Pts</th><th class="tl-dir">^v</th></tr></thead><tbody id="cv-log-${uid}"></tbody></table></div>`;}
+    case 'sreq':{const reqs=C.eventLog.filter(e=>e.entryType==='request'&&e.request&&e.request.status!=='declined'&&parseDate(e.request.eventDate)>=today);return reqs.length?`<div>${reqs.map(e=>`<div class="req-row${e.request.status==='approved'?' approved':''}"><div class="req-event-name">${esc(e.event)}</div><div class="req-event-date">${fmt(e.request.eventDate)}</div><span class="req-status-chip req-${e.request.status}">${e.request.status.toUpperCase()}</span></div>`).join('')}</div>`:`<div class="empty-dim">No upcoming requests.</div>`;}
+    default: return`<div style="color:var(--text-dim);font-size:12px">Unknown section</div>`;
+  }
+}
+
+function cvMakePlaced(sId,zId,col){
+  const info=ALL_SECTIONS.find(s=>s.id===sId)||{label:sId};
+  const div=document.createElement('div'); div.className='cv-placed'; div.dataset.sectionId=sId; div.dataset.zoneId=zId; div.dataset.col=col||'';
+  div.innerHTML=`<div class="cv-placed-header"><span class="cv-placed-grip">:</span><span class="cv-placed-name">${esc(info.label)}</span><div class="cv-placed-arrows"><button class="cv-placed-arrow">^</button><button class="cv-placed-arrow">v</button><button class="cv-placed-eject">x</button></div></div><div class="cv-placed-content">${cvSectionHTML(sId)}</div>`;
+  const header=div.querySelector('.cv-placed-header');
+  const btns=div.querySelectorAll('.cv-placed-arrow');
+  div.querySelector('.cv-placed-eject').onclick=()=>ejectSection(sId,zId,col);
+  btns[0].onclick=()=>moveSectionInZone(sId,zId,col,-1);
+  btns[1].onclick=()=>moveSectionInZone(sId,zId,col,1);
+  header.draggable=true;
+  header.addEventListener('dragstart',e=>{cvDragStart('section',sId,zId,col);div.classList.add('dragging');e.dataTransfer.effectAllowed='move';});
+  header.addEventListener('dragend',()=>{div.classList.remove('dragging');cvDragEnd();});
+  cvAttachLongPress(header,()=>{cvDragStart('section',sId,zId,col);cvStartTouchFollow(div,endE=>{const t=endE.changedTouches[0];const tgt=document.elementFromPoint(t.clientX,t.clientY);const dz=tgt?.closest('[data-drop-zone]');const dc=tgt?.closest('[data-drop-col]');if(dz){removeSectionFromSource(sId,zId,col);const zone=cvLayout.zones.find(z=>z.id===dz.dataset.dropZone);if(zone){if(zone.type==='two-col'){const arr=dc?.dataset.dropCol==='right'?zone.right:zone.left;if(!arr.includes(sId))arr.push(sId);}else{if(!zone.sections.includes(sId))zone.sections.push(sId);}}cvSave();cvDragEnd();renderCustomBoard();}else if(tgt?.closest('#cv-pool')){removeSectionFromSource(sId,zId,col);if(!cvLayout.pool.includes(sId))cvLayout.pool.push(sId);cvSave();cvDragEnd();renderCustomBoard();}else cvDragEnd();});});
+  return div;
+}
+
+function cvMakeDropZone(zId,col,isEmpty){
+  const dz=document.createElement('div'); dz.className=col?'cv-col':'cv-fullwidth-drop'; dz.dataset.dropZone=zId; if(col)dz.dataset.dropCol=col;
+  if(col)dz.innerHTML=`<div class="cv-col-label">${col==='left'?'Left':'Right'}</div>`;
+  if(isEmpty){const e=document.createElement('div');e.className=col?'cv-col-empty':'cv-fullwidth-empty';e.textContent='Drop sections here';dz.appendChild(e);}
+  dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('dragover');});
+  dz.addEventListener('dragleave',()=>dz.classList.remove('dragover'));
+  dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('dragover');cvDropOnZone(zId,col||null);});
+  return dz;
+}
+
+function renderCustomBoard(){
+  const pool=el('cv-pool'); if(pool){
+    pool.innerHTML='';
+    const ps=cvLayout.pool||[];
+    if(!ps.length)pool.innerHTML=`<div style="font-size:11px;color:var(--text-dim);font-style:italic;align-self:center">All sections placed</div>`;
+    else ps.forEach(sid=>{
+      const info=ALL_SECTIONS.find(s=>s.id===sid)||{label:sid};
+      const chip=document.createElement('div'); chip.className='cv-chip'; chip.innerHTML=`<span>:</span>${esc(info.label)}`;
+      chip.draggable=true;
+      chip.addEventListener('dragstart',e=>{cvDragStart('chip',sid,null,null);chip.classList.add('dragging');e.dataTransfer.effectAllowed='move';});
+      chip.addEventListener('dragend',()=>{chip.classList.remove('dragging');cvDragEnd();});
+      cvAttachLongPress(chip,()=>{cvDragStart('chip',sid,null,null);cvStartTouchFollow(chip,endE=>{const t=endE.changedTouches[0];const tgt=document.elementFromPoint(t.clientX,t.clientY);const dz=tgt?.closest('[data-drop-zone]');const dc=tgt?.closest('[data-drop-col]');if(dz){cvLayout.pool=(cvLayout.pool||[]).filter(s=>s!==sid);const zone=cvLayout.zones.find(z=>z.id===dz.dataset.dropZone);if(zone){if(zone.type==='two-col'){const arr=dc?.dataset.dropCol==='right'?zone.right:zone.left;if(!arr.includes(sid))arr.push(sid);}else{if(!zone.sections.includes(sid))zone.sections.push(sid);}}cvSave();cvDragEnd();renderCustomBoard();}else cvDragEnd();});});
+      pool.appendChild(chip);
+    });
+    pool.addEventListener('dragover',e=>{e.preventDefault();pool.classList.add('dragover');});
+    pool.addEventListener('dragleave',()=>pool.classList.remove('dragover'));
+    pool.addEventListener('drop',e=>{e.preventDefault();pool.classList.remove('dragover');cvDropOnPool();});
+  }
+  const zonesEl=el('cv-zones'); if(!zonesEl)return; zonesEl.innerHTML='';
+  cvLayout.zones.forEach((zone)=>{
+    const zEl=document.createElement('div'); zEl.className='cv-zone'; zEl.dataset.zoneId=zone.id;
+    const header=document.createElement('div'); header.className='cv-zone-header';
+    header.innerHTML=`<span class="cv-zone-grip">:</span><button class="cv-zone-type-btn">${zone.type==='two-col'?'Two Column':'Full Width'}</button><div class="cv-zone-arrows"><button class="cv-zone-arrow">^</button><button class="cv-zone-arrow">v</button></div><button class="cv-zone-delete">x</button>`;
+    header.querySelector('.cv-zone-type-btn').onclick=()=>toggleZoneType(zone.id);
+    const arrs=header.querySelectorAll('.cv-zone-arrow'); arrs[0].onclick=()=>moveZone(zone.id,-1); arrs[1].onclick=()=>moveZone(zone.id,1);
+    header.querySelector('.cv-zone-delete').onclick=()=>deleteZone(zone.id);
+    const grip=header.querySelector('.cv-zone-grip');
+    grip.draggable=true;
+    grip.addEventListener('dragstart',e=>{cvDragStart('zone',zone.id,null,null);zEl.classList.add('zone-dragging');e.dataTransfer.effectAllowed='move';});
+    grip.addEventListener('dragend',()=>{zEl.classList.remove('zone-dragging');cvDragEnd();});
+    zEl.addEventListener('dragover',e=>{e.preventDefault();zEl.classList.add('zone-dragover');});
+    zEl.addEventListener('dragleave',e=>{if(!zEl.contains(e.relatedTarget))zEl.classList.remove('zone-dragover');});
+    zEl.addEventListener('drop',e=>{e.preventDefault();zEl.classList.remove('zone-dragover');if(cvDragItem&&cvDragItem.kind==='zone')cvDropOnZone(zone.id,null);});
+    cvAttachLongPress(grip,()=>{cvDragStart('zone',zone.id,null,null);cvStartTouchFollow(grip,endE=>{const t=endE.changedTouches[0];const tgt=document.elementFromPoint(t.clientX,t.clientY);const tz=tgt?.closest('.cv-zone');if(tz&&tz.dataset.zoneId!==zone.id){const fi=cvLayout.zones.findIndex(z=>z.id===zone.id);const ti=cvLayout.zones.findIndex(z=>z.id===tz.dataset.zoneId);if(fi>=0&&ti>=0){const z=cvLayout.zones.splice(fi,1)[0];cvLayout.zones.splice(ti,0,z);cvSave();cvDragEnd();renderCustomBoard();}}else cvDragEnd();});});
+    zEl.appendChild(header);
+    const body=document.createElement('div'); body.className='cv-zone-body'+(zone.type==='two-col'?' two-col-body':'');
+    if(zone.type==='two-col'){
+      ['left','right'].forEach(col=>{
+        const colSects=zone[col]||[];
+        const dz=cvMakeDropZone(zone.id,col,colSects.length===0);
+        colSects.forEach(sid=>{dz.appendChild(cvMakePlaced(sid,zone.id,col));});
+        body.appendChild(dz);
+      });
+    } else {
+      const sects=zone.sections||[];
+      const dz=cvMakeDropZone(zone.id,null,sects.length===0);
+      sects.forEach(sid=>{dz.appendChild(cvMakePlaced(sid,zone.id,null));});
+      body.appendChild(dz);
+    }
+    zEl.appendChild(body); zonesEl.appendChild(zEl);
+  });
+}
+
+function cvAttachLongPress(el2,cb){
+  el2.addEventListener('touchstart',e=>{cvLongPressTimer=setTimeout(()=>{navigator.vibrate&&navigator.vibrate(40);cb(e);},500);},{passive:true});
+  el2.addEventListener('touchend',()=>clearTimeout(cvLongPressTimer),{passive:true});
+  el2.addEventListener('touchmove',()=>clearTimeout(cvLongPressTimer),{passive:true});
+}
+function cvStartTouchFollow(srcEl,onEnd){
+  if(cvTouchClone){cvTouchClone.remove();cvTouchClone=null;}
+  cvTouchClone=srcEl.cloneNode(true);
+  cvTouchClone.style.cssText=`position:fixed;left:-999px;top:-999px;opacity:0.8;z-index:9999;pointer-events:none;width:${srcEl.offsetWidth}px;border:2px solid var(--gold);border-radius:3px;background:var(--surface);`;
+  document.body.appendChild(cvTouchClone);
+  const mH=e=>{const t=e.touches[0];cvTouchClone.style.left=(t.clientX-20)+'px';cvTouchClone.style.top=(t.clientY-20)+'px';document.querySelectorAll('[data-drop-zone]').forEach(d=>d.classList.remove('dragover'));document.elementFromPoint(t.clientX,t.clientY)?.closest('[data-drop-zone]')?.classList.add('dragover');};
+  const eH=e=>{document.removeEventListener('touchmove',mH);document.removeEventListener('touchend',eH);if(cvTouchClone){cvTouchClone.remove();cvTouchClone=null;}document.querySelectorAll('[data-drop-zone]').forEach(d=>d.classList.remove('dragover'));onEnd(e);};
+  document.addEventListener('touchmove',mH,{passive:true});
+  document.addEventListener('touchend',eH,{passive:true});
+}
+
+/* 
+   MAIN RENDER
+ */
+function render(){
+  const C=CONFIG;
+  const today=new Date(); today.setHours(0,0,0,0);
+
+  /* score */
+  let score=C.startingScore||50;
+  C.eventLog.forEach(e=>{score+=(e.points||0);});
+  score=Math.max(0,Math.min(100,Math.round(score)));
+
+  /* suspensions */
+  const suspMap=calcSuspensions(C.eventLog,today);
+
+  /* band */
+  const band=BANDS.find(b=>score>=b.min&&score<=b.max)||BANDS[2];
+
+  /* topbar */
+  el('tb-name').textContent   =C.name+"'s Board";
+  el('tb-score').textContent  =score;
+  el('tb-updated').textContent="Updated "+C.lastUpdated;
+  var tbv=el('tb-version'); if(tbv) tbv.textContent='v1.04';
+
+  /* 1 position */
+  const pi=el('pos-icon');
+  pi.textContent=band.icon; pi.style.color=band.color; pi.style.borderColor=band.color;
+  el('pos-status').textContent=band.label; el('pos-status').style.color=band.color;
+  el('pos-message').textContent=band.msgFn(C.name);
+  const fill=el('score-fill'); fill.style.width=score+'%'; fill.style.background=band.color;
+  const sn=el('score-num'); sn.textContent=score; sn.style.color=band.color;
+  el('score-ring').style.borderColor=band.color;
+  el('position-banner').style.borderTopColor=band.color;
+
+  /* freedom statuses */
+  const rawStatuses={};
+  FREEDOM_ORDER.forEach(n=>{rawStatuses[n]=getRawStatus(n,score,suspMap,C);});
+  const freedomStatuses=applyCascade(rawStatuses);
+
+  /* - OVERVIEW - */
+  /* 8 targets */
+  const otg=el('ov-targets-grid');
+  if(otg){otg.innerHTML='';(C.targets||[]).forEach(t=>{const d=document.createElement('div');d.className='target-card'+(t.achieved?' achieved':'');d.innerHTML=`<div class="target-icon">${t.achieved?'ok':'o'}</div><div class="target-label">${esc(t.label)}</div>`;otg.appendChild(d);});}
+
+  /* 3 flat grid */
+  renderFlatGrid('ov-freedom-grid',freedomStatuses,suspMap,rawStatuses);
+
+  /* 4 unlock + 5 suspensions */
+  renderUnlock(el('ov-unlock-target'),el('ov-unlock-meta'),el('ov-unlock-behaviours'),score,freedomStatuses,suspMap);
+  renderSuspPanel('ov-suspensions-panel','ov-suspensions-section',suspMap);
+
+  /* pending requests strip */
+  renderRequestsStrip('ov-requests-list','ov-requests-section',C.eventLog,suspMap,today);
+
+  /* - DETAIL - */
+  /* 3 carousel */
+  buildCarousel(freedomStatuses,suspMap,rawStatuses);
+
+  /* 12 full log */
+  const visible=[...C.eventLog].filter(e=>e.visible!==false).sort((a,b)=>b.date.localeCompare(a.date));
+  renderLog('dt-log-body',visible,suspMap,today);
+
+  /* 5 wins/setbacks */
+  const wins=visible.filter(e=>e.points>0&&e.entryType!=='request').slice(0,6);
+  const setbacks=visible.filter(e=>e.points<0).slice(0,6);
+  const dtw=el('dt-wins-list');
+  if(dtw)dtw.innerHTML=wins.length?wins.map(w=>`<div class="win-item"><span class="win-dot"></span><span>${esc(w.event)}</span></div>`).join(''):'<div class="empty-dim">No wins recorded yet.</div>';
+  const dts=el('dt-setbacks-list');
+  if(dts)dts.innerHTML=setbacks.length?setbacks.map(s=>`<div class="setback-item"><span class="setback-dot"></span><span>${esc(s.event)}</span></div>`).join(''):'<div class="empty-note">No setbacks this period ok</div>';
+
+  /* 5 suspensions */
+  renderSuspPanel('dt-suspensions-panel','dt-suspensions-section',suspMap);
+
+  /* 4 unlock */
+  renderUnlock(el('dt-unlock-target'),el('dt-unlock-meta'),el('dt-unlock-behaviours'),score,freedomStatuses,suspMap);
+
+  /* 9 activities */
+  const dhg=el('dt-hca-grid');
+  if(dhg){dhg.innerHTML='';(C.highCostActivities||[]).forEach(a=>{const d=document.createElement('div');d.className='hca-item'+(a.active?' active':' suspended');d.innerHTML=`<span class="hca-dot"></span>${esc(a.label)}`;dhg.appendChild(d);});}
+
+  /* 7 focus */
+  const dft=el('dt-focus-text'); if(dft)dft.textContent=C.currentFocus;
+
+  /* 2 board context */
+  const dbc=el('dt-board-context');
+  if(dbc)dbc.innerHTML=`Board active from <strong>${esc(C.boardActiveFrom)}</strong>. ${esc(C.startingNote)}`;
+
+  /* footer */
+  el('footer').textContent=`TRUST & FREEDOM BOARD  ${C.name.toUpperCase()}  UPDATED: ${C.lastUpdated.toUpperCase()}  ACTIVE FROM: ${C.boardActiveFrom.toUpperCase()}`;
+
+  /* view */
+  let initView; try{initView=localStorage.getItem('tfb-view');}catch(e){}
+  setView(initView||C.defaultView||'detail');
+}
+
+
+
+/* ============================================================
+   LEGACY RENDERER (BL-32) - ES5 compatible, no arrow functions,
+   no const/let, no template literals, no optional chaining
+   ============================================================ */
+
+function legacyFmt(iso) {
+  if (!iso) return '';
+  var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var parts = iso.split('-');
+  var y = parseInt(parts[0], 10);
+  var m = parseInt(parts[1], 10);
+  var d = parseInt(parts[2], 10);
+  return d + ' ' + months[m-1] + ' ' + y;
+}
+
+function legacyEsc(s) {
+  var d = document.createElement('div');
+  d.appendChild(document.createTextNode(s));
+  return d.innerHTML;
+}
+
+function legacyDaysBetween(a, b) {
+  return Math.round((b.getTime() - a.getTime()) / 86400000);
+}
+
+function legacyAddDays(date, days) {
+  var d = new Date(date.getTime());
+  d.setDate(d.getDate() + days);
+  return d;
+}
+
+function legacyParseDate(iso) {
+  var parts = iso.split('-');
+  return new Date(parseInt(parts[0],10), parseInt(parts[1],10)-1, parseInt(parts[2],10));
+}
+
+function legacyIsoFromDate(d) {
+  var m = String(d.getMonth()+1);
+  var day = String(d.getDate());
+  if (m.length < 2) m = '0' + m;
+  if (day.length < 2) day = '0' + day;
+  return d.getFullYear() + '-' + m + '-' + day;
+}
+
+function legacyCalcScore(C) {
+  var score = C.startingScore || 50;
+  var log = C.eventLog || [];
+  for (var i = 0; i < log.length; i++) {
+    score += (log[i].points || 0);
+  }
+  if (score < 0) score = 0;
+  if (score > 100) score = 100;
+  return Math.round(score);
+}
+
+function legacyGetBand(score) {
+  if (score <= 20) return { label: 'SUSPENDED',       color: '#c0392b' };
+  if (score <= 40) return { label: 'RESTRICTED',       color: '#d4872a' };
+  if (score <= 60) return { label: 'REBUILDING TRUST', color: '#d4872a' };
+  if (score <= 80) return { label: 'MAKING PROGRESS',  color: '#c8a84a' };
+  return               { label: 'STRONG TRUST',        color: '#3db87a' };
+}
+
+function legacyGetRawStatus(name, score, suspMap, C) {
+  var override = C.freedomOverrides && C.freedomOverrides[name];
+  var susp = suspMap[name];
+  if (susp && susp.active && !(override && override.overrideStatus)) return 'SUSPENDED';
+  if (override && override.overrideStatus) return override.overrideStatus;
+  var eff = score;
+  if (susp && susp.scoreFloor !== null && susp.scoreFloor !== undefined) {
+    eff = Math.min(score, susp.scoreFloor);
+  }
+  var rules = AUTO_RULES[name] || [];
+  var rule = null;
+  for (var i = 0; i < rules.length; i++) {
+    if (eff <= rules[i].max) { rule = rules[i]; break; }
+  }
+  if (!rule) rule = rules[rules.length - 1];
+  return rule ? rule.status : 'LOCKED';
+}
+
+function legacyCalcSuspensions(eventLog, today) {
+  var m = {};
+  for (var i = 0; i < eventLog.length; i++) {
+    var ev = eventLog[i];
+    if (!ev.suspend) continue;
+    var s = ev.suspend;
+    if (!s.freedom) continue;
+    var start = legacyParseDate(ev.date);
+    var nomEnd = legacyAddDays(start, s.days || 14);
+    var liftD = s.earlyLiftDate ? legacyParseDate(s.earlyLiftDate) : nomEnd;
+    if (s.earlyLiftDate && liftD > nomEnd) liftD = nomEnd;
+    var daysRem = legacyDaysBetween(today, liftD);
+    if (daysRem > 0) {
+      if (!m[s.freedom] || daysRem > m[s.freedom].daysRemaining) {
+        m[s.freedom] = {
+          active: true,
+          daysRemaining: daysRem,
+          liftDate: legacyIsoFromDate(liftD),
+          reason: s.reason || 'Suspended',
+          scoreFloor: s.scoreFloor || null
+        };
+      }
+    }
+  }
+  return m;
+}
+
+function legacySafeText(s) {
+  var d = document.createElement('div');
+  d.appendChild(document.createTextNode(String(s || '')));
+  return d.innerHTML;
+}
+
+function legacyFmtDate(iso) {
+  if (!iso) return '';
+  var mn = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var p = iso.split('-');
+  if (p.length < 3) return iso;
+  return parseInt(p[2], 10) + ' ' + (mn[parseInt(p[1], 10) - 1] || '') + ' ' + p[0];
+}
+
+function legacyRender() {
+  var renderStart = new Date().getTime();
+  var debugLines = [];
+  var dataLoaded = false;
+  var success = false;
+
+  var loadingEl = document.getElementById('leg-loading');
+  if (loadingEl) loadingEl.style.display = 'none';
+
+  try {
+    var C = window.__TFB_DATA;
+    if (!C) { throw new Error('__TFB_DATA not available'); }
+    dataLoaded = true;
+
+    var today = new Date();
+    today.setHours(0, 0, 0, 0);
+    var i, ri, fname;
+
+    /* SCORE */
+    var score = C.startingScore || 0;
+    var log = C.eventLog || [];
+    for (i = 0; i < log.length; i++) { score = score + (log[i].points || 0); }
+    if (score < 0) score = 0;
+    if (score > 100) score = 100;
+    score = Math.round(score);
+
+    /* BAND */
+    var bandLabel, bandColor;
+    if (score <= 20)      { bandLabel = 'SUSPENDED';       bandColor = '#c0392b'; }
+    else if (score <= 40) { bandLabel = 'RESTRICTED';       bandColor = '#d4872a'; }
+    else if (score <= 60) { bandLabel = 'REBUILDING TRUST'; bandColor = '#d4872a'; }
+    else if (score <= 80) { bandLabel = 'MAKING PROGRESS';  bandColor = '#c8a84a'; }
+    else                  { bandLabel = 'STRONG TRUST';     bandColor = '#3db87a'; }
+
+    var statusEl = document.getElementById('leg-status');
+    var msgEl    = document.getElementById('leg-msg');
+    var scoreEl  = document.getElementById('leg-score');
+    if (statusEl) { statusEl.innerHTML = bandLabel; statusEl.style.color = bandColor; }
+    if (msgEl)    { msgEl.innerHTML = legacySafeText(C.name) + ' - ' + bandLabel.toLowerCase() + ' position.'; }
+    if (scoreEl)  { scoreEl.innerHTML = String(score); scoreEl.style.color = bandColor; }
+
+    /* SUSPENSIONS */
+    var suspMap = {};
+    for (i = 0; i < log.length; i++) {
+      var ev = log[i];
+      if (!ev.suspend) continue;
+      var s = ev.suspend;
+      if (!s.freedom) continue;
+      var sp = ev.date.split('-');
+      var startD = new Date(parseInt(sp[0],10), parseInt(sp[1],10)-1, parseInt(sp[2],10));
+      var endD = new Date(startD.getTime());
+      endD.setDate(endD.getDate() + (s.days || 14));
+      var liftD = endD;
+      if (s.earlyLiftDate) {
+        var ep = s.earlyLiftDate.split('-');
+        var early = new Date(parseInt(ep[0],10), parseInt(ep[1],10)-1, parseInt(ep[2],10));
+        if (early < endD) liftD = early;
+      }
+      var daysRem = Math.round((liftD.getTime() - today.getTime()) / 86400000);
+      if (daysRem > 0) {
+        var lm = liftD.getMonth() + 1;
+        var ld = liftD.getDate();
+        var liftStr = liftD.getFullYear() + '-' + (lm < 10 ? '0'+lm : String(lm)) + '-' + (ld < 10 ? '0'+ld : String(ld));
+        if (!suspMap[s.freedom] || daysRem > suspMap[s.freedom].daysRemaining) {
+          suspMap[s.freedom] = { active:true, daysRemaining:daysRem, liftDate:liftStr, reason:s.reason||'Suspended', scoreFloor:s.scoreFloor||null };
+        }
+      }
+    }
+
+    /* AUTO RULES */
+    var autoRules = {
+      "Local Daytime": [{max:20,status:"LOCKED",note:"Not currently available"},{max:40,status:"LIMITED",note:"Local area only"},{max:999,status:"GRANTED",note:"Out locally"}],
+      "Evening":       [{max:40,status:"LOCKED",note:"Not currently available"},{max:60,status:"REBUILDING",note:"Back by 9pm"},{max:80,status:"LIMITED",note:"Agreed times"},{max:999,status:"GRANTED",note:"Standard agreement"}],
+      "Wider Travel":  [{max:50,status:"LOCKED",note:"Not currently available"},{max:70,status:"REBUILDING",note:"Prior agreement required"},{max:85,status:"LIMITED",note:"With prior agreement"},{max:999,status:"GRANTED",note:"Subject to check-in"}],
+      "Parties":       [{max:70,status:"LOCKED",note:"Not currently available"},{max:85,status:"REBUILDING",note:"Being considered"},{max:95,status:"LIMITED",note:"With prior approval"},{max:999,status:"GRANTED",note:"Subject to approval"}],
+      "Sleepovers":    [{max:80,status:"LOCKED",note:"Not currently available"},{max:90,status:"REBUILDING",note:"Being considered"},{max:97,status:"LIMITED",note:"With prior approval"},{max:999,status:"GRANTED",note:"Subject to approval"}]
+    };
+    var freedomList = ["Local Daytime","Evening","Wider Travel","Parties","Sleepovers"];
+    var overrides = C.freedomOverrides || {};
+    var rawStatuses = {};
+    var rules, rule, eff, ov, susp;
+
+    for (i = 0; i < freedomList.length; i++) {
+      fname = freedomList[i];
+      ov = overrides[fname] || {};
+      susp = suspMap[fname];
+      if (susp && susp.active && !ov.overrideStatus) {
+        rawStatuses[fname] = 'SUSPENDED';
+      } else if (ov.overrideStatus) {
+        rawStatuses[fname] = ov.overrideStatus;
+      } else {
+        eff = score;
+        if (susp && susp.scoreFloor) eff = Math.min(score, susp.scoreFloor);
+        rules = autoRules[fname] || [];
+        rule = rules[rules.length - 1];
+        for (ri = 0; ri < rules.length; ri++) {
+          if (eff <= rules[ri].max) { rule = rules[ri]; break; }
+        }
+        rawStatuses[fname] = rule ? rule.status : 'LOCKED';
+      }
+    }
+
+    /* CASCADE */
+    var freedomStatuses = {};
+    var cascadeBlock = false;
+    for (i = 0; i < freedomList.length; i++) {
+      fname = freedomList[i];
+      if (cascadeBlock) {
+        freedomStatuses[fname] = 'LOCKED';
+      } else {
+        freedomStatuses[fname] = rawStatuses[fname];
+        if (rawStatuses[fname] === 'SUSPENDED') cascadeBlock = true;
+      }
+    }
+
+    /* FREEDOM GRID */
+    var freeDom = document.getElementById('leg-freedoms');
+    if (freeDom) {
+      var fhtml = '';
+      for (i = 0; i < freedomList.length; i++) {
+        fname = freedomList[i];
+        var fst = freedomStatuses[fname];
+        var fsusp = suspMap[fname];
+        var statusColors = {GRANTED:'#3db87a',LIMITED:'#5b9bd5',REBUILDING:'#d4872a',LOCKED:'#777',SUSPENDED:'#c0392b'};
+        var fColor = statusColors[fst] || '#777';
+        var noteText = '';
+        if (fsusp && fsusp.active && rawStatuses[fname] === 'SUSPENDED') {
+          noteText = legacySafeText(fsusp.reason) + ' - ' + fsusp.daysRemaining + ' days (lifts ' + legacyFmtDate(fsusp.liftDate) + ')';
+        } else {
+          rules = autoRules[fname] || [];
+          for (ri = 0; ri < rules.length; ri++) {
+            if (score <= rules[ri].max) { noteText = legacySafeText(rules[ri].note || ''); break; }
+          }
+        }
+        fhtml = fhtml + '<div style="padding:8px 0;border-bottom:1px solid #2a2a2e">';
+        fhtml = fhtml + '<span style="font-weight:bold;color:#e6e2d6">' + legacySafeText(fname) + '</span>';
+        fhtml = fhtml + ' <span style="display:inline-block;padding:2px 8px;border:1px solid ' + fColor + ';color:' + fColor + ';font-size:10px;font-weight:bold;letter-spacing:1px;border-radius:2px">' + fst + '</span>';
+        if (noteText) fhtml = fhtml + '<div style="font-size:11px;color:#666;margin-top:2px">' + noteText + '</div>';
+        fhtml = fhtml + '</div>';
+      }
+      freeDom.innerHTML = fhtml;
+    }
+
+    /* ACTIVE SUSPENSIONS */
+    var activeSusps = [];
+    for (fname in suspMap) {
+      if (suspMap[fname] && suspMap[fname].active) activeSusps.push([fname, suspMap[fname]]);
+    }
+    var suspSection = document.getElementById('leg-susp-section');
+    var suspEl = document.getElementById('leg-suspensions');
+    if (activeSusps.length > 0 && suspSection) {
+      suspSection.style.display = 'block';
+      var shtml = '';
+      for (i = 0; i < activeSusps.length; i++) {
+        shtml = shtml + '<div style="padding:6px 0;border-bottom:1px solid #2a2a2e">';
+        shtml = shtml + '<strong style="color:#c0392b">' + legacySafeText(activeSusps[i][0]) + '</strong> - ' + legacySafeText(activeSusps[i][1].reason) + '<br>';
+        shtml = shtml + '<span style="font-size:11px;color:#884">' + activeSusps[i][1].daysRemaining + ' days remaining - lifts ' + legacyFmtDate(activeSusps[i][1].liftDate) + '</span>';
+        shtml = shtml + '</div>';
+      }
+      if (suspEl) suspEl.innerHTML = shtml;
+    }
+
+    /* NEXT UNLOCK */
+    var unlockEl = document.getElementById('leg-unlock');
+    if (unlockEl) {
+      var rankMap = {GRANTED:5,LIMITED:4,REBUILDING:3,LOCKED:2,SUSPENDED:1};
+      var target = null; var targetRank = 99;
+      for (i = 0; i < freedomList.length; i++) {
+        fname = freedomList[i];
+        var fst2 = freedomStatuses[fname];
+        var isSusp2 = suspMap[fname] && suspMap[fname].active;
+        if (fst2 !== 'GRANTED' && !isSusp2) {
+          var r2 = rankMap[fst2] || 0;
+          if (r2 < targetRank) { targetRank = r2; target = fname; }
+        }
+      }
+      if (target) {
+        rules = autoRules[target] || [];
+        var nextScore = null;
+        for (ri = 0; ri < rules.length; ri++) {
+          if (score <= rules[ri].max && ri + 1 < rules.length) { nextScore = rules[ri].max + 1; break; }
+        }
+        var uhtml = '<strong style="color:#3db87a">' + legacySafeText(target) + '</strong>';
+        if (nextScore) uhtml = uhtml + ' - needs ' + nextScore + '+ points';
+        uhtml = uhtml + '<ul style="margin-top:8px;padding-left:18px">';
+        var beh = C.nextUnlockBehaviours || [];
+        for (i = 0; i < beh.length; i++) uhtml = uhtml + '<li style="font-size:12px;color:#aaa;margin-bottom:3px">' + legacySafeText(beh[i]) + '</li>';
+        uhtml = uhtml + '</ul>';
+        unlockEl.innerHTML = uhtml;
+      } else {
+        unlockEl.innerHTML = 'All available freedoms unlocked.';
+      }
+    }
+
+    /* FOCUS */
+    var focusEl = document.getElementById('leg-focus');
+    if (focusEl) focusEl.innerHTML = legacySafeText(C.currentFocus || '');
+
+    /* WINS AND SETBACKS */
+    var visible = [];
+    for (i = 0; i < log.length; i++) { if (log[i].visible !== false) visible.push(log[i]); }
+    visible.sort(function(a,b) { return a.date < b.date ? 1 : a.date > b.date ? -1 : 0; });
+
+    var wins = []; var setbacks = [];
+    for (i = 0; i < visible.length; i++) {
+      var pts = visible[i].points || 0;
+      if (pts > 0 && visible[i].entryType !== 'request') wins.push(visible[i]);
+      else if (pts < 0) setbacks.push(visible[i]);
+    }
+    if (wins.length > 6) wins.length = 6;
+    if (setbacks.length > 6) setbacks.length = 6;
+
+    var winsEl = document.getElementById('leg-wins');
+    if (winsEl) {
+      if (wins.length === 0) {
+        winsEl.innerHTML = '<div style="color:#666;font-style:italic;padding:5px 0">No wins recorded yet.</div>';
+      } else {
+        var whtml = '';
+        for (i = 0; i < wins.length; i++) whtml = whtml + '<div style="padding:5px 0;border-bottom:1px solid #2a2a2e;font-size:13px;color:#c8e8d8"><span style="color:#3db87a">+ </span>' + legacySafeText(wins[i].event) + '</div>';
+        winsEl.innerHTML = whtml;
+      }
+    }
+
+    var setbacksEl = document.getElementById('leg-setbacks');
+    if (setbacksEl) {
+      if (setbacks.length === 0) {
+        setbacksEl.innerHTML = '<div style="color:#3db87a;padding:5px 0">No setbacks recorded this period.</div>';
+      } else {
+        var sbhtml = '';
+        for (i = 0; i < setbacks.length; i++) sbhtml = sbhtml + '<div style="padding:5px 0;border-bottom:1px solid #2a2a2e;font-size:13px;color:#aaa"><span style="color:#c0392b">- </span>' + legacySafeText(setbacks[i].event) + '</div>';
+        setbacksEl.innerHTML = sbhtml;
+      }
+    }
+
+    /* TRUST LOG */
+    var logEl = document.getElementById('leg-log');
+    if (logEl) {
+      var lhtml = '';
+      var mn2 = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      var logItems = visible.length > 20 ? visible.slice(0, 20) : visible;
+      for (i = 0; i < logItems.length; i++) {
+        var le = logItems[i];
+        var lpts = le.points || 0;
+        var pStr = lpts > 0 ? '+' + lpts : lpts === 0 ? '-' : String(lpts);
+        var pColor = lpts > 0 ? '#3db87a' : lpts < 0 ? '#c0392b' : '#666';
+        var dp = le.date ? le.date.split('-') : ['','',''];
+        var dateStr = parseInt(dp[2],10) + ' ' + (mn2[parseInt(dp[1],10)-1]||'') + ' ' + dp[0];
+        lhtml = lhtml + '<tr><td style="color:#666;white-space:nowrap;font-size:10px;padding:6px 8px">' + dateStr + '</td><td style="padding:6px 8px;font-size:12px">' + legacySafeText(le.event||'') + '</td><td style="color:' + pColor + ';font-weight:bold;text-align:right;padding:6px 8px">' + pStr + '</td></tr>';
+      }
+      logEl.innerHTML = lhtml;
+    }
+
+    /* TARGETS */
+    var targetsEl = document.getElementById('leg-targets');
+    if (targetsEl) {
+      var thtml = ''; var targets = C.targets || [];
+      for (i = 0; i < targets.length; i++) {
+        var t = targets[i];
+        var tColor = t.achieved ? '#3db87a' : '#aaa';
+        thtml = thtml + '<div style="padding:5px 0;border-bottom:1px solid #2a2a2e;color:' + tColor + '">' + (t.achieved ? '[ok] ' : '[ ] ') + legacySafeText(t.label) + '</div>';
+      }
+      if (thtml) targetsEl.innerHTML = thtml;
+    }
+
+    /* ACTIVITIES */
+    var activitiesEl = document.getElementById('leg-activities');
+    if (activitiesEl) {
+      var ahtml = ''; var acts = C.highCostActivities || [];
+      for (i = 0; i < acts.length; i++) {
+        var a = acts[i];
+        var aColor = a.active ? '#3db87a' : '#c0392b';
+        ahtml = ahtml + '<div style="padding:5px 0;border-bottom:1px solid #2a2a2e;color:' + aColor + '">' + (a.active ? '[on]  ' : '[off] ') + legacySafeText(a.label) + '</div>';
+      }
+      if (ahtml) activitiesEl.innerHTML = ahtml;
+    }
+
+    success = true;
+    debugLines.push('render: legacy');
+    debugLines.push('status: success');
+    debugLines.push('data-source: ' + (window.__TFB_DATA_SOURCE || 'unknown'));
+    debugLines.push('score: ' + score);
+    debugLines.push('entries: ' + log.length);
+    debugLines.push('legacy data loaded: YES');
+
+  } catch(err) {
+    var errMsg = err ? (err.message || String(err)) : 'unknown';
+    debugLines.push('render: legacy');
+    debugLines.push('status: FAILED');
+    debugLines.push('error: ' + errMsg);
+    debugLines.push('legacy data loaded: ' + (dataLoaded ? 'YES (render failed)' : 'NO'));
+    var errEl = document.getElementById('leg-error-msg');
+    if (errEl) { errEl.style.display = 'block'; errEl.innerHTML = 'Legacy render error: ' + errMsg + '<br>Please refresh or try another device.'; }
+  }
+
+  var renderTime = new Date().getTime() - renderStart;
+  debugLines.push('time: ' + renderTime + 'ms');
+  debugLines.push('ua: ' + (navigator.userAgent || 'unknown').substring(0, 100));
+  if (window.__TFB_LEGACY_REASONS && window.__TFB_LEGACY_REASONS.length) {
+    debugLines.push('legacy-flags: ' + window.__TFB_LEGACY_REASONS.join(', '));
+  }
+
+  var debugEl = document.getElementById('leg-debug');
+  if (debugEl) {
+    var dbg = '';
+    for (var di = 0; di < debugLines.length; di++) dbg = dbg + debugLines[di] + '<br>';
+    debugEl.innerHTML = dbg;
+  }
+  return success;
+}
+
+function routeRender() {
+  var legacyBoard = document.getElementById('legacy-board');
+  var mainPage    = document.getElementById('page-root');
+  var legBanner   = document.getElementById('leg-banner');
+
+  if (window.__TFB_LEGACY) {
+    // Legacy path - board already visible by default, just show banner and render
+    if (legBanner) legBanner.style.display = 'block';
+    if (mainPage)  mainPage.style.display  = 'none';
+    legacyRender();
+  } else {
+    // Attempt modern render
+    try {
+      render();
+      // Modern render succeeded - swap display
+      if (legacyBoard) legacyBoard.style.display = 'none';
+      if (mainPage)    mainPage.style.display     = 'block';
+    } catch(e) {
+      // Modern render failed - stay on legacy, show banner
+      window.__TFB_LEGACY = true;
+      window.__TFB_LEGACY_REASONS = (window.__TFB_LEGACY_REASONS || []).concat(['modern-render-failed: ' + (e.message || 'unknown')]);
+      if (legBanner) legBanner.style.display = 'block';
+      if (mainPage)  mainPage.style.display  = 'none';
+      legacyRender();
+    }
+  }
+}
+
+
+/* ============================================================
+   APP VERSION + CONSOLE LOG + INIT
+   ============================================================ */
+var APP_VERSION = 'v1.04';
+var RENDER_MODE = window.__TFB_LEGACY ? 'legacy' : 'modern';
+var LAST_UPDATED = (typeof CONFIG !== 'undefined' && CONFIG.lastUpdated) ? CONFIG.lastUpdated : 'unknown';
+
+/* Version label */
+var verEl = document.getElementById('tfb-version-label');
+if (verEl) {
+  verEl.innerHTML = APP_VERSION + ' - ' + RENDER_MODE + ' - ' + LAST_UPDATED;
+}
+
+/* Console log on load */
+try {
+  console.log('[TFB] version=' + APP_VERSION + ' mode=' + RENDER_MODE + ' updated=' + LAST_UPDATED + ' ua=' + (navigator.userAgent || '').substring(0, 80));
+} catch(e) {}
+
+/* DOMContentLoaded + window.onload fallback for old Safari / iOS 10 */
+var tfbRendered = false;
+function tfbInit() {
+  if (tfbRendered) return;
+  tfbRendered = true;
+  routeRender();
+}
+
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+  tfbInit();
+} else if (document.addEventListener) {
+  document.addEventListener('DOMContentLoaded', tfbInit);
+} else if (document.attachEvent) {
+  document.attachEvent('onreadystatechange', function() {
+    if (document.readyState === 'complete') tfbInit();
+  });
+}
+
+/* Belt-and-braces window.onload fallback */
+window.onload = function() { tfbInit(); };
+
+/* Resize handler - modern only */
+if (window.addEventListener) {
+  window.addEventListener('resize', function() {
+    if (!window.__TFB_LEGACY) {
+      try { updateCarousel(); } catch(e) {}
+    }
+  });
+}
+</script>
+
+<!-- GUARANTEED INIT - plain inline script, no events, iOS 10 safe -->
+<script>
+(function() {
+  if (typeof tfbRendered !== 'undefined' && tfbRendered) { return; }
+  var isLeg = (typeof window.__TFB_LEGACY !== 'undefined') && window.__TFB_LEGACY;
+  var lb = document.getElementById('legacy-board');
+  var mp = document.getElementById('page-root');
+  var bn = document.getElementById('leg-banner');
+  var ld = document.getElementById('leg-loading');
+  if (isLeg) {
+    if (lb) lb.style.display = 'block';
+    if (mp) mp.style.display = 'none';
+    if (bn) bn.style.display = 'block';
+    if (ld) ld.style.display = 'none';
+    if (typeof legacyRender === 'function') {
+      legacyRender();
+    } else {
+      var st = document.getElementById('leg-status');
+      if (st) { st.innerHTML = 'Render unavailable - please refresh'; st.style.color = '#c0392b'; }
+    }
+  } else {
+    try {
+      if (typeof render === 'function') render();
+      if (mp) mp.style.display = 'block';
+      if (lb) lb.style.display = 'none';
+    } catch(e) {
+      if (mp) mp.style.display = 'none';
+      if (lb) lb.style.display = 'block';
+      if (bn) bn.style.display = 'block';
+      if (ld) ld.style.display = 'none';
+      if (typeof legacyRender === 'function') legacyRender();
+    }
+  }
+  if (typeof tfbRendered !== 'undefined') tfbRendered = true;
+})();
+</script>
+</body>
+</html>

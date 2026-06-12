@@ -2,7 +2,46 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<!-- TRUST & FREEDOM BOARD v1.01 | 5 June 2026 -->
+<!-- TRUST & FREEDOM BOARD v1.02 | 12 June 2026 -->
+
+<script>
+/* Legacy browser detection - runs before anything else */
+(function() {
+  var isLegacy = false;
+  var reasons = [];
+
+  // Test for features required by modern path
+  try {
+    // Test const/let
+    eval('const __t=1;let __u=2;');
+  } catch(e) { isLegacy = true; reasons.push('no-const-let'); }
+
+  try {
+    // Test arrow functions
+    eval('var __f = () => 1;');
+  } catch(e) { isLegacy = true; reasons.push('no-arrow'); }
+
+  try {
+    // Test template literals
+    eval('var __s = `test`;');
+  } catch(e) { isLegacy = true; reasons.push('no-template-literals'); }
+
+  try {
+    // Test CSS custom properties support
+    if (!window.CSS || !window.CSS.supports || !window.CSS.supports('color', 'var(--test)')) {
+      isLegacy = true; reasons.push('no-css-vars');
+    }
+  } catch(e) { isLegacy = true; reasons.push('no-css-check'); }
+
+  // Test Promise
+  if (typeof Promise === 'undefined') { isLegacy = true; reasons.push('no-promise'); }
+
+  window.__TFB_LEGACY = isLegacy;
+  window.__TFB_LEGACY_REASONS = reasons;
+  window.__TFB_UA = navigator.userAgent || 'unknown';
+})();
+</script>
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Trust &amp; Freedom Board - Vaughan</title>
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Barlow:ital,wght@0,400;0,500;0,600;1,400&family=Share+Tech+Mono&display=swap" rel="stylesheet">
@@ -10,7 +49,7 @@
 <script>
 /* ============================================================
    TRUST & FREEDOM BOARD
-   Version: 1.01
+   Version: 1.02
    Last updated: 5 June 2026
    ============================================================
    PARENT CONFIGURATION -- EDIT THIS SECTION ONLY
@@ -29,7 +68,7 @@ const CONFIG = {
 
   /* - IDENTITY ----------------------------- */
   name:            "Vaughan",
-  lastUpdated: "5 June 2026",
+  lastUpdated:     "5 June 2026",
   boardActiveFrom: "5 June 2026",
   defaultView:     "overview",
 
@@ -45,13 +84,12 @@ const CONFIG = {
   /* - TARGETS - updatable via Integrity Update form ----------
      achieved: false = in progress  |  achieved: true = completed
   ------------------------------------ */
-      targets: [
-    { label: "No Detentions",                                     achieved: false },
-    { label: "On Time to School",                                 achieved: false },
-    { label: "Merit Award",                                       achieved: false },
-    { label: "Positive / Great School Report",                    achieved: false },
-    { label: "Positive feedback from a teacher or trusted adult", achieved: false },
-    { label: "HONESTY",                                           achieved: false }
+  targets: [
+    { label: "No Detentions",                                        achieved: false },
+    { label: "On Time to School",                                    achieved: false },
+    { label: "Merit Award",                                          achieved: false },
+    { label: "Positive / Great School Report",                       achieved: false },
+    { label: "Positive feedback from a teacher or trusted adult",    achieved: false }
   ],
 
   /* - IMPORTANT ACTIVITIES - updatable via Integrity Update form ----
@@ -91,39 +129,7 @@ const CONFIG = {
      points: +/-3/6/9/12/15 (or 0 for diary/request entries)
      entryType: "event" | "request" | "diary"
   ------------------------------------ */
-  eventLog: [
-    {
-      date:      "2026-06-05",
-      event:     "Missed curfew - no contact",
-      category:  "Reliability",
-      entryType: "event",
-      points:    -6,
-      addedBy:   "Dad",
-      addedAt:   "2026-06-05T17:26:00",
-      notes:     "",
-      visible:   true,
-      suspend: {
-        freedom:         "Evening",
-        days:            6,
-        reason:          "Curfew breach - no contact",
-        scoreFloor:      null,
-        earlyLiftDate:   null,
-        imposedDate:     "2026-06-05",
-        imposedBy:       "Dad",
-        originalEndDate: "2026-06-11"
-      }
-    },
-    {
-      date:      "2026-06-05",
-      event:     "Unproductive day - screens all day",
-      category:  "General",
-      entryType: "diary",
-      points:    0,
-      addedBy:   "Dad",
-      addedAt:   "2026-06-05T17:24:00",
-      notes:     "",
-      visible:   true
-    },]
+  eventLog: []
 };
 </script>
 
@@ -162,28 +168,28 @@ const CONFIG = {
 
   * { box-sizing:border-box; margin:0; padding:0; }
   html { scroll-behavior:smooth; }
-  body { background:var(--bg); color:var(--text); font-family:'Barlow',sans-serif; font-size:15px; line-height:1.5; min-height:100vh; }
+  body { background:var(--bg); color:var(--text); font-family:'Barlow',Arial,sans-serif; font-size:15px; line-height:1.5; min-height:100vh; }
 
   /* - TOPBAR - */
   .topbar { background:#111; border-bottom:3px solid var(--gold); padding:0 20px; display:flex; align-items:center; justify-content:space-between; height:54px; position:sticky; top:0; z-index:100; gap:12px; }
   .topbar-left { display:flex; align-items:center; gap:14px; }
-  .topbar-title { font-family:'Rajdhani',sans-serif; font-size:17px; font-weight:700; letter-spacing:4px; color:var(--gold); text-transform:uppercase; white-space:nowrap; }
-  .topbar-name  { font-family:'Rajdhani',sans-serif; font-size:13px; font-weight:600; color:var(--text-dim); letter-spacing:2px; text-transform:uppercase; white-space:nowrap; }
+  .topbar-title { font-family:'Rajdhani',Arial,sans-serif; font-size:17px; font-weight:700; letter-spacing:4px; color:var(--gold); text-transform:uppercase; white-space:nowrap; }
+  .topbar-name  { font-family:'Rajdhani',Arial,sans-serif; font-size:13px; font-weight:600; color:var(--text-dim); letter-spacing:2px; text-transform:uppercase; white-space:nowrap; }
   .topbar-right { display:flex; align-items:center; gap:10px; }
   .topbar-score { font-family:var(--mono); font-size:11px; color:var(--text-dim); }
   .topbar-score span { font-weight:700; color:var(--gold); }
   .topbar-updated { font-family:var(--mono); font-size:10px; color:var(--text-dim); white-space:nowrap; }
   .view-toggle { display:flex; border:1px solid var(--border); border-radius:3px; overflow:hidden; }
-  .view-btn { background:none; border:none; color:var(--text-dim); padding:5px 11px; cursor:pointer; font-family:'Rajdhani',sans-serif; font-size:11px; font-weight:600; letter-spacing:2px; text-transform:uppercase; transition:all 0.15s; border-right:1px solid var(--border); }
+  .view-btn { background:none; border:none; color:var(--text-dim); padding:5px 11px; cursor:pointer; font-family:'Rajdhani',Arial,sans-serif; font-size:11px; font-weight:600; letter-spacing:2px; text-transform:uppercase; transition:all 0.15s; border-right:1px solid var(--border); }
   .view-btn:last-child { border-right:none; }
   .view-btn.active { background:var(--gold); color:#111; }
   .view-btn:hover:not(.active) { color:var(--gold); }
-  .print-btn { background:none; border:1px solid var(--border); color:var(--text-dim); padding:5px 12px; border-radius:3px; cursor:pointer; font-family:'Rajdhani',sans-serif; font-size:11px; font-weight:600; letter-spacing:2px; text-transform:uppercase; transition:all 0.15s; }
+  .print-btn { background:none; border:1px solid var(--border); color:var(--text-dim); padding:5px 12px; border-radius:3px; cursor:pointer; font-family:'Rajdhani',Arial,sans-serif; font-size:11px; font-weight:600; letter-spacing:2px; text-transform:uppercase; transition:all 0.15s; }
   .print-btn:hover { border-color:var(--gold); color:var(--gold); }
 
   /* - LAYOUT - */
   .page { max-width:920px; margin:0 auto; padding:20px 16px 60px; }
-  .section-label { font-family:'Rajdhani',sans-serif; font-size:10px; font-weight:700; letter-spacing:4px; text-transform:uppercase; color:var(--gold-dim); border-left:3px solid var(--gold-dim); padding-left:10px; margin-bottom:12px; }
+  .section-label { font-family:'Rajdhani',Arial,sans-serif; font-size:10px; font-weight:700; letter-spacing:4px; text-transform:uppercase; color:var(--gold-dim); border-left:3px solid var(--gold-dim); padding-left:10px; margin-bottom:12px; }
   .card { background:var(--surface); border:1px solid var(--border); border-radius:3px; padding:18px; }
   .gap { margin-bottom:18px; }
   .two-col { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:18px; align-items:start; }
@@ -197,8 +203,8 @@ const CONFIG = {
   /* - 1 POSITION BANNER - */
   .position-banner { background:var(--surface); border:1px solid var(--border); border-radius:3px; padding:22px 20px 18px; margin-bottom:18px; display:grid; grid-template-columns:auto 1fr auto; gap:18px; align-items:center; border-top:4px solid var(--gold); }
   .position-icon { width:54px; height:54px; flex-shrink:0; border:2px solid currentColor; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:22px; background:#111; }
-  .position-label { font-family:'Rajdhani',sans-serif; font-size:10px; font-weight:700; letter-spacing:4px; text-transform:uppercase; color:var(--gold-dim); margin-bottom:5px; }
-  .position-status { font-family:'Rajdhani',sans-serif; font-size:28px; font-weight:700; letter-spacing:3px; line-height:1; margin-bottom:6px; }
+  .position-label { font-family:'Rajdhani',Arial,sans-serif; font-size:10px; font-weight:700; letter-spacing:4px; text-transform:uppercase; color:var(--gold-dim); margin-bottom:5px; }
+  .position-status { font-family:'Rajdhani',Arial,sans-serif; font-size:28px; font-weight:700; letter-spacing:3px; line-height:1; margin-bottom:6px; }
   .position-message { font-size:13px; color:var(--text-mid); font-style:italic; line-height:1.6; }
   .score-track { height:4px; background:var(--surface2); border-radius:2px; margin-top:8px; overflow:hidden; max-width:340px; }
   .score-fill  { height:100%; border-radius:2px; transition:width 0.6s ease; }
@@ -208,7 +214,7 @@ const CONFIG = {
 
   /* - 2 BOARD CONTEXT (detail only, bottom) - */
   .board-context { background:var(--surface2); border:1px solid var(--border); border-left:3px solid var(--gold-dim); border-radius:2px; padding:12px 14px; margin-bottom:18px; font-size:12px; color:var(--text-mid); font-style:italic; line-height:1.6; }
-  .board-context strong { font-family:'Rajdhani',sans-serif; font-size:9px; letter-spacing:3px; text-transform:uppercase; color:var(--gold-dim); font-style:normal; display:block; margin-bottom:4px; }
+  .board-context strong { font-family:'Rajdhani',Arial,sans-serif; font-size:9px; letter-spacing:3px; text-transform:uppercase; color:var(--gold-dim); font-style:normal; display:block; margin-bottom:4px; }
 
   /* - 3 FLAT FREEDOM GRID (overview) - */
   .freedom-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:10px; margin-bottom:18px; }
@@ -218,7 +224,7 @@ const CONFIG = {
   .fc-REBUILDING { background:var(--rebuilding-bg); border-color:var(--rebuilding-bdr); border-top:4px solid var(--rebuilding); }
   .fc-LOCKED     { background:var(--locked-bg);     border-color:var(--locked-bdr);     border-top:4px solid var(--locked); }
   .fc-SUSPENDED  { background:var(--suspended-bg);  border-color:var(--suspended-bdr);  border-top:4px solid var(--suspended); }
-  .freedom-card-name { font-family:'Rajdhani',sans-serif; font-size:13px; font-weight:700; color:var(--text); margin-bottom:8px; line-height:1.2; }
+  .freedom-card-name { font-family:'Rajdhani',Arial,sans-serif; font-size:13px; font-weight:700; color:var(--text); margin-bottom:8px; line-height:1.2; }
   .freedom-badge { display:inline-block; font-family:var(--mono); font-size:9px; font-weight:700; letter-spacing:1.5px; padding:3px 7px; border-radius:2px; margin-bottom:6px; }
   .fc-GRANTED    .freedom-badge { color:var(--granted);   border:1px solid var(--granted);   background:rgba(61,184,122,0.1); }
   .fc-LIMITED    .freedom-badge { color:var(--limited);   border:1px solid var(--limited);   background:rgba(91,155,213,0.1); }
@@ -238,7 +244,7 @@ const CONFIG = {
   .carousel-wrap { position:relative; height:240px; overflow:hidden; }
   .carousel-track { position:absolute; top:0; left:0; width:100%; height:100%; }
   .c-card { position:absolute; top:50%; left:50%; border-radius:6px; padding:16px 12px; text-align:center; transition:all 0.45s cubic-bezier(0.25,0.46,0.45,0.94); cursor:pointer; user-select:none; display:flex; flex-direction:column; align-items:center; justify-content:center; border-top:4px solid transparent; }
-  .c-card-name { font-family:'Rajdhani',sans-serif; font-weight:700; line-height:1.2; }
+  .c-card-name { font-family:'Rajdhani',Arial,sans-serif; font-weight:700; line-height:1.2; }
   .c-badge { display:inline-block; font-family:var(--mono); font-weight:700; letter-spacing:1.5px; padding:3px 8px; border-radius:2px; margin-top:6px; }
   .c-note  { line-height:1.3; margin-top:6px; }
   .c-countdown { margin-top:8px; }
@@ -268,7 +274,7 @@ const CONFIG = {
   .unlock-card { background:var(--granted-bg); border:1px solid var(--granted-bdr); border-left:4px solid var(--granted); border-radius:3px; padding:18px; margin-bottom:18px; }
   .unlock-header { display:flex; align-items:center; gap:12px; margin-bottom:4px; flex-wrap:wrap; }
   .unlock-arrow  { font-size:18px; color:var(--granted); }
-  .unlock-target { font-family:'Rajdhani',sans-serif; font-size:20px; font-weight:700; letter-spacing:2px; color:var(--granted); }
+  .unlock-target { font-family:'Rajdhani',Arial,sans-serif; font-size:20px; font-weight:700; letter-spacing:2px; color:var(--granted); }
   .unlock-meta   { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px; margin-top:4px; }
   .unlock-chip   { font-family:var(--mono); font-size:10px; padding:3px 8px; border-radius:2px; letter-spacing:1px; }
   .chip-current  { background:var(--rebuilding-bg); color:var(--rebuilding); border:1px solid var(--rebuilding-bdr); }
@@ -284,7 +290,7 @@ const CONFIG = {
   .suspension-row { display:flex; align-items:flex-start; gap:14px; padding:10px 0; border-bottom:1px solid rgba(192,57,43,0.15); }
   .suspension-row:last-child { border-bottom:none; padding-bottom:0; }
   .susp-left { min-width:80px; text-align:right; }
-  .susp-freedom { font-family:'Rajdhani',sans-serif; font-weight:700; font-size:13px; color:var(--suspended); }
+  .susp-freedom { font-family:'Rajdhani',Arial,sans-serif; font-weight:700; font-size:13px; color:var(--suspended); }
   .susp-detail { flex:1; }
   .susp-reason { font-size:12px; color:#c88; margin-bottom:3px; }
   .susp-meta   { font-family:var(--mono); font-size:10px; color:#884; letter-spacing:0.5px; margin-bottom:2px; }
@@ -315,7 +321,7 @@ const CONFIG = {
 
   /* - 9 IMPORTANT ACTIVITIES - */
   .hca-grid { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:18px; }
-  .hca-item  { display:flex; align-items:center; gap:7px; padding:6px 12px; border-radius:3px; font-family:'Rajdhani',sans-serif; font-size:12px; font-weight:600; letter-spacing:0.5px; border:1px solid var(--border); background:var(--surface); color:var(--text-mid); }
+  .hca-item  { display:flex; align-items:center; gap:7px; padding:6px 12px; border-radius:3px; font-family:'Rajdhani',Arial,sans-serif; font-size:12px; font-weight:600; letter-spacing:0.5px; border:1px solid var(--border); background:var(--surface); color:var(--text-mid); }
   .hca-item.active   { border-color:var(--granted-bdr);   background:var(--granted-bg);   color:var(--granted); }
   .hca-item.suspended{ border-color:var(--suspended-bdr); background:var(--suspended-bg); color:var(--suspended); }
   .hca-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
@@ -329,7 +335,7 @@ const CONFIG = {
 
   /* - 12 FULL TRUST LOG - */
   .log-table { width:100%; border-collapse:collapse; }
-  .log-table thead th { font-family:'Rajdhani',sans-serif; font-size:9px; font-weight:700; letter-spacing:3px; text-transform:uppercase; color:var(--gold-dim); padding:7px 10px; text-align:left; border-bottom:2px solid var(--border); }
+  .log-table thead th { font-family:'Rajdhani',Arial,sans-serif; font-size:9px; font-weight:700; letter-spacing:3px; text-transform:uppercase; color:var(--gold-dim); padding:7px 10px; text-align:left; border-bottom:2px solid var(--border); }
   .log-table tbody tr { border-bottom:1px solid var(--surface2); }
   .log-table tbody tr:hover { background:var(--surface2); }
   .log-table tbody td { padding:9px 10px; font-size:12px; color:var(--text-mid); vertical-align:top; }
@@ -387,18 +393,18 @@ const CONFIG = {
 
   /* - CUSTOM VIEW - */
   .cv-toolbar { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; background:var(--surface2); border:1px solid var(--border); border-left:3px solid var(--gold-dim); border-radius:3px; padding:12px 16px; margin-bottom:16px; }
-  .cv-toolbar-left { display:flex; align-items:center; gap:10px; font-family:'Rajdhani',sans-serif; font-size:13px; font-weight:700; letter-spacing:2px; color:var(--gold); text-transform:uppercase; }
+  .cv-toolbar-left { display:flex; align-items:center; gap:10px; font-family:'Rajdhani',Arial,sans-serif; font-size:13px; font-weight:700; letter-spacing:2px; color:var(--gold); text-transform:uppercase; }
   .cv-toolbar-right { display:flex; gap:8px; flex-wrap:wrap; }
-  .cv-add-btn { background:var(--surface); border:1px solid var(--border); color:var(--text-mid); padding:6px 12px; border-radius:3px; cursor:pointer; font-family:'Rajdhani',sans-serif; font-size:11px; font-weight:700; letter-spacing:2px; text-transform:uppercase; transition:all 0.15s; }
+  .cv-add-btn { background:var(--surface); border:1px solid var(--border); color:var(--text-mid); padding:6px 12px; border-radius:3px; cursor:pointer; font-family:'Rajdhani',Arial,sans-serif; font-size:11px; font-weight:700; letter-spacing:2px; text-transform:uppercase; transition:all 0.15s; }
   .cv-add-btn:hover { border-color:var(--gold); color:var(--gold); }
-  .cv-reset-btn { background:none; border:1px solid var(--suspended-bdr); color:var(--suspended); padding:6px 12px; border-radius:3px; cursor:pointer; font-family:'Rajdhani',sans-serif; font-size:11px; font-weight:700; letter-spacing:2px; text-transform:uppercase; transition:all 0.15s; }
+  .cv-reset-btn { background:none; border:1px solid var(--suspended-bdr); color:var(--suspended); padding:6px 12px; border-radius:3px; cursor:pointer; font-family:'Rajdhani',Arial,sans-serif; font-size:11px; font-weight:700; letter-spacing:2px; text-transform:uppercase; transition:all 0.15s; }
   .cv-reset-btn:hover { background:var(--suspended-bg); }
   .cv-save-status { font-family:var(--mono); font-size:11px; color:var(--granted); }
   .cv-pool-wrap { margin-bottom:16px; }
-  .cv-pool-label { font-family:'Rajdhani',sans-serif; font-size:10px; font-weight:700; letter-spacing:3px; text-transform:uppercase; color:var(--text-dim); margin-bottom:8px; }
+  .cv-pool-label { font-family:'Rajdhani',Arial,sans-serif; font-size:10px; font-weight:700; letter-spacing:3px; text-transform:uppercase; color:var(--text-dim); margin-bottom:8px; }
   .cv-pool { display:flex; flex-wrap:wrap; gap:8px; min-height:44px; padding:10px; background:var(--surface2); border:1px dashed var(--border); border-radius:3px; transition:background 0.15s; }
   .cv-pool.dragover { background:var(--surface); border-color:var(--gold); }
-  .cv-chip { display:flex; align-items:center; gap:6px; padding:6px 10px; background:var(--surface); border:1px solid var(--border); border-radius:3px; cursor:grab; user-select:none; transition:all 0.15s; font-family:'Rajdhani',sans-serif; font-size:12px; font-weight:600; letter-spacing:1px; color:var(--text-mid); white-space:nowrap; }
+  .cv-chip { display:flex; align-items:center; gap:6px; padding:6px 10px; background:var(--surface); border:1px solid var(--border); border-radius:3px; cursor:grab; user-select:none; transition:all 0.15s; font-family:'Rajdhani',Arial,sans-serif; font-size:12px; font-weight:600; letter-spacing:1px; color:var(--text-mid); white-space:nowrap; }
   .cv-chip:hover { border-color:var(--gold); color:var(--gold); }
   .cv-chip.dragging { opacity:0.35; }
   .cv-zone { margin-bottom:14px; background:var(--surface); border:1px solid var(--border); border-radius:3px; overflow:hidden; }
@@ -406,7 +412,7 @@ const CONFIG = {
   .cv-zone.zone-dragging { opacity:0.3; }
   .cv-zone-header { display:flex; align-items:center; gap:8px; padding:8px 12px; background:var(--surface2); border-bottom:1px solid var(--border); }
   .cv-zone-grip { font-size:14px; color:var(--text-dim); cursor:grab; flex-shrink:0; padding:2px 4px; user-select:none; }
-  .cv-zone-type-btn { font-family:'Rajdhani',sans-serif; font-size:10px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--gold-dim); background:none; border:1px solid var(--gold-dim); border-radius:2px; padding:3px 8px; cursor:pointer; transition:all 0.15s; }
+  .cv-zone-type-btn { font-family:'Rajdhani',Arial,sans-serif; font-size:10px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--gold-dim); background:none; border:1px solid var(--gold-dim); border-radius:2px; padding:3px 8px; cursor:pointer; transition:all 0.15s; }
   .cv-zone-type-btn:hover { color:var(--gold); border-color:var(--gold); }
   .cv-zone-arrows { display:flex; gap:3px; }
   .cv-zone-arrow,.cv-zone-delete,.cv-placed-arrow,.cv-placed-eject { background:none; border:1px solid var(--border); color:var(--text-dim); width:22px; height:22px; border-radius:2px; cursor:pointer; font-size:10px; display:flex; align-items:center; justify-content:center; transition:all 0.15s; flex-shrink:0; }
@@ -424,7 +430,7 @@ const CONFIG = {
   .cv-placed.dragging { opacity:0.3; }
   .cv-placed-header { display:flex; align-items:center; gap:6px; padding:6px 10px; background:var(--surface2); border:1px solid var(--border); border-radius:3px 3px 0 0; cursor:grab; user-select:none; border-bottom:2px solid var(--gold-dim); }
   .cv-placed-grip { font-size:12px; color:var(--gold-dim); flex-shrink:0; }
-  .cv-placed-name { font-family:'Rajdhani',sans-serif; font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--text-dim); flex:1; }
+  .cv-placed-name { font-family:'Rajdhani',Arial,sans-serif; font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--text-dim); flex:1; }
   .cv-placed-arrows { display:flex; gap:3px; margin-left:auto; }
   .cv-placed-content { border:1px solid var(--border); border-top:none; border-radius:0 0 3px 3px; padding:12px; background:var(--surface); }
 
@@ -456,6 +462,46 @@ const CONFIG = {
     .goal-text { color:#666 !important; }
     .goal-text strong { color:#8b6914 !important; }
   }
+
+  /* Legacy rendering path */
+  .legacy-board { display:none; font-family:Arial,sans-serif; padding:12px; background:#1a1a1c; color:#e6e2d6; }
+  .leg-section { margin-bottom:16px; padding:12px; background:#232326; border:1px solid #38383c; border-radius:3px; }
+  .leg-title { font-size:11px; letter-spacing:3px; text-transform:uppercase; color:#6e5c28; margin-bottom:8px; font-weight:bold; }
+  .leg-status { font-size:24px; font-weight:bold; letter-spacing:2px; margin-bottom:4px; }
+  .leg-msg { font-size:13px; color:#aaa; font-style:italic; }
+  .leg-score { font-size:28px; font-weight:bold; color:#c8a84a; }
+  .leg-table { width:100%; border-collapse:collapse; font-size:12px; }
+  .leg-table td, .leg-table th { padding:6px 8px; border-bottom:1px solid #333; text-align:left; }
+  .leg-table th { color:#6e5c28; font-size:10px; text-transform:uppercase; letter-spacing:2px; }
+  .leg-freedom-row { padding:8px 0; border-bottom:1px solid #333; }
+  .leg-freedom-name { font-size:13px; font-weight:bold; color:#e6e2d6; }
+  .leg-badge { display:inline-block; padding:2px 8px; border-radius:2px; font-size:10px; font-weight:bold; letter-spacing:1px; margin-left:8px; }
+  .leg-granted   { color:#3db87a; border:1px solid #3db87a; }
+  .leg-limited   { color:#5b9bd5; border:1px solid #5b9bd5; }
+  .leg-rebuilding{ color:#d4872a; border:1px solid #d4872a; }
+  .leg-locked    { color:#777;    border:1px solid #777; }
+  .leg-suspended { color:#c0392b; border:1px solid #c0392b; }
+  .leg-note { font-size:11px; color:#666; margin-top:2px; }
+  .leg-item { padding:5px 0; border-bottom:1px solid #2a2a2e; font-size:13px; color:#aaa; }
+  .leg-item:last-child { border-bottom:none; }
+  .leg-dot-pos { color:#3db87a; margin-right:6px; }
+  .leg-dot-neg { color:#c0392b; margin-right:6px; }
+  .leg-dot-neu { color:#666; margin-right:6px; }
+  .leg-debug { margin-top:20px; padding:8px 12px; background:#111; border:1px solid #333; border-radius:3px; font-size:10px; color:#555; font-family:monospace; line-height:1.6; }
+  .leg-error { padding:20px; background:#280a08; border:1px solid #5a1010; border-radius:3px; color:#c0392b; font-size:14px; text-align:center; margin:20px 0; }
+
+  /* Print styles */
+  @media print {
+    body { background:#fff !important; color:#111 !important; }
+    .topbar { position:static !important; background:#f0f0f0 !important; border-bottom:3px solid #8b6914 !important; }
+    .topbar-title { color:#8b6914 !important; }
+    .print-btn, .view-toggle { display:none !important; }
+    .page { padding:12px 16px 20px; max-width:100%; }
+    .goal-text { color:#666 !important; }
+    .goal-text strong { color:#8b6914 !important; }
+    .legacy-board { display:none !important; }
+  }
+
 </style>
 </head>
 <body>
@@ -475,6 +521,69 @@ const CONFIG = {
     </div>
     <button class="print-btn" onclick="window.print()"> Print</button>
   </div>
+</div>
+
+
+<!-- LEGACY BOARD - shown on iOS 10 / old WebKit only -->
+<div class="legacy-board" id="legacy-board">
+  <div id="leg-error-msg" class="leg-error" style="display:none">
+    Legacy display mode could not load. Please refresh or try another device.
+  </div>
+  <div id="leg-content">
+    <div class="leg-section">
+      <div class="leg-title">Current Position</div>
+      <div class="leg-status" id="leg-status">Loading...</div>
+      <div class="leg-msg" id="leg-msg"></div>
+      <div style="margin-top:8px">
+        Trust Score: <span class="leg-score" id="leg-score">-</span>
+      </div>
+    </div>
+
+    <div class="leg-section">
+      <div class="leg-title">Freedom Status</div>
+      <div id="leg-freedoms"></div>
+    </div>
+
+    <div class="leg-section" id="leg-susp-section" style="display:none">
+      <div class="leg-title">Active Suspensions</div>
+      <div id="leg-suspensions"></div>
+    </div>
+
+    <div class="leg-section">
+      <div class="leg-title">Next Unlock</div>
+      <div id="leg-unlock" style="font-size:14px;color:#aaa"></div>
+    </div>
+
+    <div class="leg-section">
+      <div class="leg-title">This Week's Focus</div>
+      <div id="leg-focus" style="font-size:13px;color:#aaa;font-style:italic"></div>
+    </div>
+
+    <div class="leg-section">
+      <div class="leg-title">Recent Wins</div>
+      <div id="leg-wins"></div>
+    </div>
+
+    <div class="leg-section">
+      <div class="leg-title">Recent Setbacks</div>
+      <div id="leg-setbacks"></div>
+    </div>
+
+    <div class="leg-section">
+      <div class="leg-title">Trust Log</div>
+      <table class="leg-table">
+        <thead><tr><th>Date</th><th>Event</th><th>Points</th></tr></thead>
+        <tbody id="leg-log"></tbody>
+      </table>
+    </div>
+
+    <div class="leg-section">
+      <div class="leg-title">Targets</div>
+      <div id="leg-targets"></div>
+    </div>
+  </div>
+
+  <div class="leg-debug" id="leg-debug"></div>
 </div>
 
 <div class="page" id="page-root">
@@ -1302,7 +1411,382 @@ function render(){
   setView(initView||C.defaultView||'detail');
 }
 
-render();
+
+
+/* ============================================================
+   LEGACY RENDERER (BL-32) - ES5 compatible, no arrow functions,
+   no const/let, no template literals, no optional chaining
+   ============================================================ */
+
+function legacyFmt(iso) {
+  if (!iso) return '';
+  var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var parts = iso.split('-');
+  var y = parseInt(parts[0], 10);
+  var m = parseInt(parts[1], 10);
+  var d = parseInt(parts[2], 10);
+  return d + ' ' + months[m-1] + ' ' + y;
+}
+
+function legacyEsc(s) {
+  var d = document.createElement('div');
+  d.appendChild(document.createTextNode(s));
+  return d.innerHTML;
+}
+
+function legacyDaysBetween(a, b) {
+  return Math.round((b.getTime() - a.getTime()) / 86400000);
+}
+
+function legacyAddDays(date, days) {
+  var d = new Date(date.getTime());
+  d.setDate(d.getDate() + days);
+  return d;
+}
+
+function legacyParseDate(iso) {
+  var parts = iso.split('-');
+  return new Date(parseInt(parts[0],10), parseInt(parts[1],10)-1, parseInt(parts[2],10));
+}
+
+function legacyIsoFromDate(d) {
+  var m = String(d.getMonth()+1);
+  var day = String(d.getDate());
+  if (m.length < 2) m = '0' + m;
+  if (day.length < 2) day = '0' + day;
+  return d.getFullYear() + '-' + m + '-' + day;
+}
+
+function legacyCalcScore(C) {
+  var score = C.startingScore || 50;
+  var log = C.eventLog || [];
+  for (var i = 0; i < log.length; i++) {
+    score += (log[i].points || 0);
+  }
+  if (score < 0) score = 0;
+  if (score > 100) score = 100;
+  return Math.round(score);
+}
+
+function legacyGetBand(score) {
+  if (score <= 20) return { label: 'SUSPENDED',       color: '#c0392b' };
+  if (score <= 40) return { label: 'RESTRICTED',       color: '#d4872a' };
+  if (score <= 60) return { label: 'REBUILDING TRUST', color: '#d4872a' };
+  if (score <= 80) return { label: 'MAKING PROGRESS',  color: '#c8a84a' };
+  return               { label: 'STRONG TRUST',        color: '#3db87a' };
+}
+
+function legacyGetRawStatus(name, score, suspMap, C) {
+  var override = C.freedomOverrides && C.freedomOverrides[name];
+  var susp = suspMap[name];
+  if (susp && susp.active && !(override && override.overrideStatus)) return 'SUSPENDED';
+  if (override && override.overrideStatus) return override.overrideStatus;
+  var eff = score;
+  if (susp && susp.scoreFloor !== null && susp.scoreFloor !== undefined) {
+    eff = Math.min(score, susp.scoreFloor);
+  }
+  var rules = AUTO_RULES[name] || [];
+  var rule = null;
+  for (var i = 0; i < rules.length; i++) {
+    if (eff <= rules[i].max) { rule = rules[i]; break; }
+  }
+  if (!rule) rule = rules[rules.length - 1];
+  return rule ? rule.status : 'LOCKED';
+}
+
+function legacyCalcSuspensions(eventLog, today) {
+  var m = {};
+  for (var i = 0; i < eventLog.length; i++) {
+    var ev = eventLog[i];
+    if (!ev.suspend) continue;
+    var s = ev.suspend;
+    if (!s.freedom) continue;
+    var start = legacyParseDate(ev.date);
+    var nomEnd = legacyAddDays(start, s.days || 14);
+    var liftD = s.earlyLiftDate ? legacyParseDate(s.earlyLiftDate) : nomEnd;
+    if (s.earlyLiftDate && liftD > nomEnd) liftD = nomEnd;
+    var daysRem = legacyDaysBetween(today, liftD);
+    if (daysRem > 0) {
+      if (!m[s.freedom] || daysRem > m[s.freedom].daysRemaining) {
+        m[s.freedom] = {
+          active: true,
+          daysRemaining: daysRem,
+          liftDate: legacyIsoFromDate(liftD),
+          reason: s.reason || 'Suspended',
+          scoreFloor: s.scoreFloor || null
+        };
+      }
+    }
+  }
+  return m;
+}
+
+function legacyRender() {
+  var renderStart = new Date().getTime();
+  var debugLines = [];
+  var success = false;
+
+  try {
+    var C = CONFIG;
+    var today = new Date();
+    today.setHours(0,0,0,0);
+
+    var score = legacyCalcScore(C);
+    var band = legacyGetBand(score);
+    var suspMap = legacyCalcSuspensions(C.eventLog || [], today);
+
+    // Position
+    var statusEl = document.getElementById('leg-status');
+    var msgEl = document.getElementById('leg-msg');
+    var scoreEl = document.getElementById('leg-score');
+    if (statusEl) { statusEl.textContent = band.label; statusEl.style.color = band.color; }
+    if (msgEl) { msgEl.textContent = C.name + ' - ' + band.label.toLowerCase() + '. Score: ' + score + '/100'; }
+    if (scoreEl) { scoreEl.textContent = score; scoreEl.style.color = band.color; }
+
+    // Freedom statuses
+    var rawStatuses = {};
+    var FREEDOM_LIST = ["Local Daytime", "Evening", "Wider Travel", "Parties", "Sleepovers"];
+    var i, name;
+    for (i = 0; i < FREEDOM_LIST.length; i++) {
+      rawStatuses[FREEDOM_LIST[i]] = legacyGetRawStatus(FREEDOM_LIST[i], score, suspMap, C);
+    }
+
+    // Cascade
+    var freedomStatuses = {};
+    var cascadeBlock = false;
+    for (i = 0; i < FREEDOM_LIST.length; i++) {
+      name = FREEDOM_LIST[i];
+      if (cascadeBlock) {
+        freedomStatuses[name] = 'LOCKED';
+      } else {
+        freedomStatuses[name] = rawStatuses[name];
+        if (rawStatuses[name] === 'SUSPENDED') cascadeBlock = true;
+      }
+    }
+
+    var freeDom = document.getElementById('leg-freedoms');
+    if (freeDom) {
+      var html = '';
+      for (i = 0; i < FREEDOM_LIST.length; i++) {
+        name = FREEDOM_LIST[i];
+        var st = freedomStatuses[name];
+        var cls = 'leg-' + st.toLowerCase();
+        var susp = suspMap[name];
+        var noteText = '';
+        if (susp && susp.active && rawStatuses[name] === 'SUSPENDED') {
+          noteText = susp.reason + ' - ' + susp.daysRemaining + ' days remaining (lifts ' + legacyFmt(susp.liftDate) + ')';
+        } else {
+          var rules = AUTO_RULES[name] || [];
+          for (var r = 0; r < rules.length; r++) {
+            if (score <= rules[r].max) { noteText = rules[r].note || ''; break; }
+          }
+        }
+        html += '<div class="leg-freedom-row">';
+        html += '<span class="leg-freedom-name">' + legacyEsc(name) + '</span>';
+        html += '<span class="leg-badge ' + cls + '">' + legacyEsc(st) + '</span>';
+        if (noteText) html += '<div class="leg-note">' + legacyEsc(noteText) + '</div>';
+        html += '</div>';
+      }
+      freeDom.innerHTML = html;
+    }
+
+    // Suspensions panel
+    var activeSusps = [];
+    for (var fname in suspMap) {
+      if (suspMap[fname] && suspMap[fname].active) {
+        activeSusps.push([fname, suspMap[fname]]);
+      }
+    }
+    var suspSection = document.getElementById('leg-susp-section');
+    var suspEl = document.getElementById('leg-suspensions');
+    if (activeSusps.length > 0 && suspSection && suspEl) {
+      suspSection.style.display = 'block';
+      var shtml = '';
+      for (i = 0; i < activeSusps.length; i++) {
+        var sname = activeSusps[i][0];
+        var sdata = activeSusps[i][1];
+        shtml += '<div class="leg-item">';
+        shtml += '<strong style="color:#c0392b">' + legacyEsc(sname) + '</strong> - ';
+        shtml += legacyEsc(sdata.reason) + '<br>';
+        shtml += '<span style="font-size:11px;color:#884">';
+        shtml += sdata.daysRemaining + ' days remaining - lifts ' + legacyFmt(sdata.liftDate);
+        shtml += '</span></div>';
+      }
+      suspEl.innerHTML = shtml;
+    }
+
+    // Next unlock
+    var unlockEl = document.getElementById('leg-unlock');
+    if (unlockEl) {
+      var target = null;
+      var targetRank = 99;
+      var rankMap = {GRANTED:5, LIMITED:4, REBUILDING:3, LOCKED:2, SUSPENDED:1};
+      for (i = 0; i < FREEDOM_LIST.length; i++) {
+        name = FREEDOM_LIST[i];
+        var fst = freedomStatuses[name];
+        var isSusp = suspMap[name] && suspMap[name].active;
+        if (fst !== 'GRANTED' && !isSusp) {
+          var r2 = rankMap[fst] || 0;
+          if (r2 < targetRank) { targetRank = r2; target = name; }
+        }
+      }
+      if (target) {
+        var rules2 = AUTO_RULES[target] || [];
+        var nextScore = null;
+        for (var ri = 0; ri < rules2.length; ri++) {
+          if (score <= rules2[ri].max) {
+            if (ri + 1 < rules2.length) nextScore = rules2[ri].max + 1;
+            break;
+          }
+        }
+        var utext = target;
+        if (nextScore) utext += ' - needs ' + nextScore + '+ points';
+        unlockEl.textContent = utext;
+      } else {
+        unlockEl.textContent = 'All available freedoms unlocked for current score';
+      }
+    }
+
+    // Focus
+    var focusEl = document.getElementById('leg-focus');
+    if (focusEl) focusEl.textContent = C.currentFocus || '';
+
+    // Wins and setbacks from log
+    var log = C.eventLog || [];
+    var visible = [];
+    for (i = 0; i < log.length; i++) {
+      if (log[i].visible !== false) visible.push(log[i]);
+    }
+    visible.sort(function(a,b) { return b.date < a.date ? -1 : b.date > a.date ? 1 : 0; });
+
+    var wins = [];
+    var setbacks = [];
+    for (i = 0; i < visible.length; i++) {
+      if (visible[i].points > 0 && visible[i].entryType !== 'request') wins.push(visible[i]);
+      else if (visible[i].points < 0) setbacks.push(visible[i]);
+    }
+    wins = wins.slice(0, 6);
+    setbacks = setbacks.slice(0, 6);
+
+    var winsEl = document.getElementById('leg-wins');
+    if (winsEl) {
+      if (wins.length === 0) {
+        winsEl.innerHTML = '<div class="leg-item" style="color:#666;font-style:italic">No wins recorded yet.</div>';
+      } else {
+        var whtml = '';
+        for (i = 0; i < wins.length; i++) {
+          whtml += '<div class="leg-item"><span class="leg-dot-pos">+</span>' + legacyEsc(wins[i].event) + '</div>';
+        }
+        winsEl.innerHTML = whtml;
+      }
+    }
+
+    var setbacksEl = document.getElementById('leg-setbacks');
+    if (setbacksEl) {
+      if (setbacks.length === 0) {
+        setbacksEl.innerHTML = '<div class="leg-item" style="color:#3db87a">No setbacks recorded this period</div>';
+      } else {
+        var sbhtml = '';
+        for (i = 0; i < setbacks.length; i++) {
+          sbhtml += '<div class="leg-item"><span class="leg-dot-neg">-</span>' + legacyEsc(setbacks[i].event) + '</div>';
+        }
+        setbacksEl.innerHTML = sbhtml;
+      }
+    }
+
+    // Trust log
+    var logEl = document.getElementById('leg-log');
+    if (logEl) {
+      var lhtml = '';
+      var logItems = visible.slice(0, 20);
+      for (i = 0; i < logItems.length; i++) {
+        var e = logItems[i];
+        var pStr = e.points > 0 ? '+' + e.points : e.points === 0 ? '-' : '' + e.points;
+        var pColor = e.points > 0 ? '#3db87a' : e.points < 0 ? '#c0392b' : '#666';
+        lhtml += '<tr>';
+        lhtml += '<td style="color:#666;white-space:nowrap;font-size:10px">' + legacyFmt(e.date) + '</td>';
+        lhtml += '<td>' + legacyEsc(e.event) + '</td>';
+        lhtml += '<td style="color:' + pColor + ';font-weight:bold;text-align:right">' + pStr + '</td>';
+        lhtml += '</tr>';
+      }
+      logEl.innerHTML = lhtml;
+    }
+
+    // Targets
+    var targetsEl = document.getElementById('leg-targets');
+    if (targetsEl) {
+      var thtml = '';
+      var targets = C.targets || [];
+      for (i = 0; i < targets.length; i++) {
+        var t = targets[i];
+        var tColor = t.achieved ? '#3db87a' : '#aaa';
+        var tMark = t.achieved ? '[ok] ' : '[ ] ';
+        thtml += '<div class="leg-item" style="color:' + tColor + '">' + tMark + legacyEsc(t.label) + '</div>';
+      }
+      targetsEl.innerHTML = thtml;
+    }
+
+    success = true;
+    debugLines.push('render: legacy');
+    debugLines.push('status: success');
+    debugLines.push('score: ' + score);
+    debugLines.push('entries: ' + (C.eventLog || []).length);
+
+  } catch(err) {
+    success = false;
+    debugLines.push('render: legacy');
+    debugLines.push('status: FAILED - ' + (err.message || 'unknown error'));
+    var errEl = document.getElementById('leg-error-msg');
+    var contEl = document.getElementById('leg-content');
+    if (errEl) errEl.style.display = 'block';
+    if (contEl) contEl.style.display = 'none';
+  }
+
+  var renderTime = new Date().getTime() - renderStart;
+  debugLines.push('time: ' + renderTime + 'ms');
+  debugLines.push('ua: ' + (navigator.userAgent || 'unknown').substring(0, 100));
+  if (window.__TFB_LEGACY_REASONS && window.__TFB_LEGACY_REASONS.length) {
+    debugLines.push('legacy-flags: ' + window.__TFB_LEGACY_REASONS.join(', '));
+  }
+
+  var debugEl = document.getElementById('leg-debug');
+  if (debugEl) debugEl.innerHTML = debugLines.join('<br>');
+
+  return success;
+}
+
+/* ============================================================
+   RENDER ROUTING - decides modern vs legacy path
+   ============================================================ */
+function routeRender() {
+  if (window.__TFB_LEGACY) {
+    // Legacy path
+    var legacyBoard = document.getElementById('legacy-board');
+    var mainPage = document.getElementById('page-root');
+    var topbar = document.querySelector('.topbar');
+    if (legacyBoard) legacyBoard.style.display = 'block';
+    if (mainPage) mainPage.style.display = 'none';
+    legacyRender();
+  } else {
+    // Modern path
+    var legacyBoard2 = document.getElementById('legacy-board');
+    if (legacyBoard2) legacyBoard2.style.display = 'none';
+    try {
+      render();
+    } catch(e) {
+      // Modern render failed - try legacy as fallback
+      var legBd = document.getElementById('legacy-board');
+      var mainPg = document.getElementById('page-root');
+      if (legBd) legBd.style.display = 'block';
+      if (mainPg) mainPg.style.display = 'none';
+      window.__TFB_LEGACY = true;
+      legacyRender();
+    }
+  }
+}
+
+
+routeRender();
 window.addEventListener('resize',()=>{updateCarousel();});
 </script>
 </body>

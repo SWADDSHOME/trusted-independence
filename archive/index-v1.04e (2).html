@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!-- TRUST & FREEDOM BOARD v1.04e | LANDING PAGE | 12 June 2026 -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Trust &amp; Freedom Board</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Barlow:wght@0,400;0,500;1,400&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  html, body { height:100%; background:#1a1a1c; color:#e6e2d6; font-family:'Barlow',Arial,sans-serif; }
+  body { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; padding:24px 16px; }
+  .board { width:100%; max-width:480px; text-align:center; }
+  .logo { font-family:'Rajdhani',Arial,sans-serif; font-size:28px; font-weight:700; letter-spacing:6px; color:#c8a84a; text-transform:uppercase; margin-bottom:6px; }
+  .logo-sub { font-family:'Share Tech Mono',monospace; font-size:10px; color:#444; letter-spacing:3px; text-transform:uppercase; margin-bottom:48px; }
+  .detecting { font-family:'Share Tech Mono',monospace; font-size:11px; color:#555; letter-spacing:2px; margin-bottom:12px; }
+  .redirect-bar-wrap { height:2px; background:#232326; border-radius:1px; margin-bottom:12px; overflow:hidden; }
+  .redirect-bar { height:100%; background:#c8a84a; border-radius:1px; width:0%; transition:width 0.1s linear; }
+  .auto-notice { font-family:'Share Tech Mono',monospace; font-size:10px; color:#444; letter-spacing:1px; margin-bottom:32px; line-height:1.6; }
+  .auto-notice span { color:#666; }
+  .options { display:flex; flex-direction:column; gap:14px; margin-bottom:40px; }
+  .option-btn { display:block; width:100%; padding:20px 24px; background:#232326; border:1px solid #38383c; border-radius:4px; border-top:3px solid #38383c; color:#e6e2d6; text-decoration:none; text-align:left; cursor:pointer; transition:border-color 0.15s, background 0.15s; }
+  .option-btn:hover { background:#2a2a2e; }
+  .option-btn.recommended { border-top-color:#c8a84a; border-color:#4a3c18; background:#222018; }
+  .option-btn.recommended:hover { background:#2a2818; }
+  .option-btn.alt { border-top-color:#3a3a3e; }
+  .option-btn.alt:hover { border-color:#555; }
+  .opt-label { font-family:'Rajdhani',Arial,sans-serif; font-size:11px; font-weight:700; letter-spacing:3px; text-transform:uppercase; margin-bottom:6px; }
+  .recommended .opt-label { color:#c8a84a; }
+  .alt .opt-label { color:#555; }
+  .opt-title { font-family:'Rajdhani',Arial,sans-serif; font-size:20px; font-weight:700; letter-spacing:2px; margin-bottom:4px; }
+  .recommended .opt-title { color:#e6e2d6; }
+  .alt .opt-title { color:#888; }
+  .opt-desc { font-size:12px; color:#666; line-height:1.5; }
+  .opt-tag { display:inline-block; margin-top:10px; padding:2px 8px; border-radius:2px; font-family:'Share Tech Mono',monospace; font-size:9px; font-weight:700; letter-spacing:1px; }
+  .recommended .opt-tag { background:rgba(200,168,74,0.12); color:#c8a84a; border:1px solid #6e5c28; }
+  .alt .opt-tag { background:rgba(80,80,80,0.12); color:#555; border:1px solid #333; }
+  .version-row { font-family:'Share Tech Mono',monospace; font-size:10px; color:#333; letter-spacing:2px; text-transform:uppercase; }
+  .version-row span { color:#555; }
+</style>
+</head>
+<body>
+<div class="board">
+
+  <div class="logo">Trust &amp; Freedom</div>
+  <div class="logo-sub">Vaughan's Board</div>
+
+  <div class="detecting" id="detect-status">Detecting device...</div>
+
+  <div class="redirect-bar-wrap">
+    <div class="redirect-bar" id="redirect-bar"></div>
+  </div>
+
+  <div class="auto-notice">
+    Auto-redirecting to <span id="auto-target">—</span> in <span id="auto-countdown">3</span>s &nbsp;&middot;&nbsp; or choose below
+  </div>
+
+  <div class="options">
+    <a class="option-btn recommended" href="board.html" id="btn-modern">
+      <div class="opt-label">Modern Browser</div>
+      <div class="opt-title">Full Board</div>
+      <div class="opt-desc">Full interactive board — overview, detail, carousel, custom layout. Chrome, Firefox, Safari 11+, Edge.</div>
+      <span class="opt-tag" id="tag-modern">RECOMMENDED FOR THIS DEVICE</span>
+    </a>
+    <a class="option-btn alt" href="board-legacy.html" id="btn-legacy">
+      <div class="opt-label">Legacy Device</div>
+      <div class="opt-title">Legacy Board</div>
+      <div class="opt-desc">Simplified layout for older devices — iPad iOS 10, older Android, basic browsers.</div>
+      <span class="opt-tag" id="tag-legacy">USE FOR OLDER DEVICES</span>
+    </a>
+  </div>
+
+  <div class="version-row">v1.04e &nbsp;&middot;&nbsp; <span id="ver-mode">detecting</span> &nbsp;&middot;&nbsp; swaddshome.github.io/trusted-independence</div>
+
+</div>
+<script>
+(function() {
+  var MODERN_URL = 'board.html';
+  var LEGACY_URL = 'board-legacy.html';
+  var DELAY = 2500;
+  var ua = navigator.userAgent || '';
+  var isLegacy = false;
+
+  var iosMatch = ua.match(/OS (\d+)_/);
+  if (iosMatch && parseInt(iosMatch[1], 10) < 11) isLegacy = true;
+  if (ua.indexOf('Android') > -1 && ua.indexOf('Chrome') === -1) {
+    var am = ua.match(/Android (\d+)/);
+    if (am && parseInt(am[1], 10) < 6) isLegacy = true;
+  }
+  try { eval('const __t=1;'); } catch(e) { isLegacy = true; }
+  try { eval('var __f=()=>1;'); } catch(e) { isLegacy = true; }
+  try { eval('var __s=`t`;'); } catch(e) { isLegacy = true; }
+
+  var target   = isLegacy ? LEGACY_URL : MODERN_URL;
+  var modeName = isLegacy ? 'LEGACY' : 'MODERN';
+
+  document.getElementById('detect-status').textContent = 'Device detected: ' + modeName;
+  document.getElementById('auto-target').textContent   = isLegacy ? 'Legacy Board' : 'Full Board';
+  document.getElementById('ver-mode').textContent      = modeName;
+
+  if (isLegacy) {
+    var bm = document.getElementById('btn-modern');
+    var bl = document.getElementById('btn-legacy');
+    var tm = document.getElementById('tag-modern');
+    var tl = document.getElementById('tag-legacy');
+    bm.className = 'option-btn alt';
+    bl.className = 'option-btn recommended';
+    tm.textContent = 'USE FOR MODERN BROWSERS';
+    tl.textContent = 'RECOMMENDED FOR THIS DEVICE';
+  }
+
+  var bar   = document.getElementById('redirect-bar');
+  var count = document.getElementById('auto-countdown');
+  var start = Date.now();
+  var tick  = setInterval(function() {
+    var elapsed = Date.now() - start;
+    var pct     = Math.min(100, (elapsed / DELAY) * 100);
+    if (bar)   bar.style.width = pct + '%';
+    var rem    = Math.max(0, Math.ceil((DELAY - elapsed) / 1000));
+    if (count) count.textContent = rem;
+    if (elapsed >= DELAY) { clearInterval(tick); window.location.href = target; }
+  }, 100);
+})();
+</script>
+</body>
+</html>
